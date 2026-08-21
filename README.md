@@ -1,47 +1,33 @@
-# متجري - Dz Store (نموذج تجريبي)
+# Dz Store — Demo
 
-## التشغيل على Linux Mint
+Simple e-commerce demo built with React + Vite.
 
-### 1. تأكد Node.js مثبت
-```bash
-node -v
-```
-إذا ما كانش مثبت:
-```bash
-sudo apt update
-sudo apt install nodejs npm -y
-```
-(يفضل استعمال nvm للحصول على نسخة حديثة: https://github.com/nvm-sh/nvm)
+## Getting Started
 
-### 2. فك ضغط المشروع وادخل للمجلد
-```bash
-cd ~/Downloads
-unzip dz-store.zip
-cd dz-store
-```
+### Prerequisites
+- Node.js 18+
 
-### 3. ثبت الحزم
+### Installation
 ```bash
 npm install
 ```
 
-### 4. شغل السيرفر المحلي
+### Run locally
 ```bash
 npm run dev
 ```
-راح يفتحلك المتصفح تلقائيا على:
-```
-http://localhost:5173
-```
+Open http://localhost:5173
 
-### ملاحظة مهمة عن البيانات
-هذا النموذج يستعمل `localStorage` (تخزين داخل المتصفح فقط)، يعني:
-- البيانات تبقى محفوظة في نفس المتصفح ونفس الجهاز
-- إذا فتحت الموقع من جهاز آخر أو متصفح آخر، ما تشوفش نفس المنتجات/الطلبات
-- هذا طبيعي للتجربة المحلية، لكن للمشروع الحقيقي (بائع + زبائن من هواتف مختلفة) لازم قاعدة بيانات مركزية (Supabase) بدل localStorage
-
-## للنشر أونلاين (بعد ما ترتاح للتصميم)
+### Build
 ```bash
 npm run build
 ```
-هذا ينشئ مجلد `dist/` تقدر ترفعه مباشرة على Vercel أو Netlify (مجانا).
+Output in `dist/` — deploy to Vercel, Netlify, or Railway.
+
+## Notes
+- Demo uses `localStorage` for data (browser-only storage).
+- Data is per-browser/per-device and not shared across devices.
+- For production with multiple users, use a centralized database (e.g. Supabase) instead of `localStorage`.
+
+## Deployment
+Works with any static host. For Railway, build command is `npm run build` and start command is `npm start`.
