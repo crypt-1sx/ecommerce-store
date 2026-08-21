@@ -1,0 +1,31 @@
+:root{
+  --ink:#0C0E0B;
+  --sky:#D6E8F4;
+  --sky-2:#EDF4FB;
+  --red:#D7303B;
+  --red-2:#A51E27;
+  --red-soft:#FFF1F1;
+  --paper:#FFFFFF;
+  --paper-2:#F6F3EE;
+  --line:#E8E2D9;
+  --line-2:#EAEDEF;
+  --muted:#7A7F87;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:"IBM Plex Sans Arabic","Instrument Sans",system-ui,sans-serif;
+  color:var(--ink);
+  background:var(--paper-2);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  letter-spacing:-.01em;
+}
+button,input,select,textarea{font:inherit}
+::selection{background:var(--sky)}
+input:focus,select:focus,textarea:focus{outline:none; border-color:var(--ink)!important; box-shadow:none!important}
+.mono{font-family:"JetBrains Mono",monospace; letter-spacing:-.02em}
+.rule{height:1px; background:var(--line); width:100%}
+.fade-in{animation: fade .28s ease}
+@keyframes fade{from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:translateY(0)}}
