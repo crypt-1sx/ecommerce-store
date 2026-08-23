@@ -1,54 +1,58 @@
-# Dz Store — Demo
+# DZ Store — Algerian E-commerce Demo
 
-Simple e-commerce demo built with React + Vite.
+React + Vite storefront for Algeria: 58 wilayas, 1,541 communes, per-wilaya shipping, COD, Supabase realtime.
 
-## Getting Started
+## Features
+- **Storefront:** responsive (phone 440px → 780px → 1120px), sticky header, trust bar, 2/3/4-col grid, product detail, order flow with human check
+- **Checkout:** wilaya → filtered commune, home/desk delivery, live shipping fee (per-wilaya `home`/`desk`), breakdown `subtotal + shipping = total`
+- **Stock:** client never sees quantity (only `available` / `out of stock`); admin sees stock; max 10 per order
+- **Orders:** phone validation, duplicate/rate-limit protection, status workflow (`pending` → `confirmed` → `delivered` / `cancelled` with stock return)
+- **Realtime DB:** Supabase (`products`, `orders`, `shipping_rates`) with localStorage fallback
 
-### Prerequisites
-- Node.js 18+
-
-### Installation
+## Quick Start
 ```bash
 npm install
+npm run dev      # http://localhost:5173
+npm run build    # dist/
 ```
 
-### Run locally
-```bash
-npm run dev
+## Environment
+Create `.env` (or `.env.local`):
 ```
-Open http://localhost:5173
-
-### Build
-```bash
-npm run build
+VITE_SUPABASE_URL=https://YOURID.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+VITE_ADMIN_PASSWORD=your-password
 ```
-Output in `dist/` — deploy to Vercel, Netlify, or Railway.
+Fallback hardcoded to demo project `szyhiodfyewstrlvnlvg` if env missing. For production set vars in Vercel/Railway.
 
-## Seller dashboard
+## Supabase Setup (1 min)
+1. Supabase Dashboard → SQL Editor → New query → paste `supabase.sql` → Run
+2. Database → Realtime → enable for `products`, `orders`
+3. Table Editor verifies `products`, `orders`, `shipping_rates` seeded (3 demo products + 58 rates)
 
-Visit `/admin`. The default password is `admin123` — override it at build time:
+`supabase.sql` creates tables, RLS (`public all` for demo), 58 wilaya rates (avg of Yalidine/ZR etc.), and seeds. Tighten policies before production.
 
-```bash
-echo 'VITE_ADMIN_PASSWORD=your-password' > .env.local
-```
+## Shipping Rates
+Defaults avg of 7 couriers (e.g., Alger 500/250, Oran 800/500, Adrar 1300/950). Admin → `Shipping` tab edits all 58 (`home`/`desk`), `Save` upserts to `shipping_rates` (batch) + local cache, realtime pushed to all clients. `Reset` restores defaults.
 
-The login hint on screen disappears once you set your own password.
+Communes dataset: 1,541 communes (48+10) via `src/communes.js` (CC-BY, open-admin-data).
 
-> This gate is **client-side only** — the password ships in the JS bundle and the
-> session flag lives in `localStorage`, so anyone can bypass it with devtools.
-> It keeps the dashboard out of a casual visitor's way; it is not real access
-> control. Put an authenticated backend in front of it before handling real orders.
+## Admin Dashboard
+- Visit `/admin` → password (default `admin123` if not changed)
+- Top bar: `Settings` (next to `Logout`)
+  - **Language:** العربية / English (global)
+  - **Password:** enter current + new + confirm → saves to `localStorage:dz-admin-pw`
+- Tabs: `Orders` (filter pending/confirmed/cancelled/delivered, status actions), `Products` (add/edit/delete), `Shipping`
+- Stats: pending/confirmed/collected/expected
 
-## Notes
-- Demo uses `localStorage` for data (browser-only storage).
-- Data is per-browser/per-device and not shared across devices.
-- Uploaded product images are downscaled to 900px JPEG before being stored, because
-  `localStorage` caps at roughly 5MB and base64 inflates size by about a third.
-  If storage does fill up, saving reports an error instead of silently discarding.
-- Stock is deducted when an order is placed and returned if the order is canceled.
-- For production with multiple users, use a centralized database (e.g. Supabase) instead of `localStorage`.
+> Client-side gate only — password in bundle + `localStorage` flag, bypassable via devtools. Add real auth before production.
 
 ## Deployment
-Works with any static host. SPA deep links (`/admin/login`) are handled by
-`public/_redirects` (Netlify) and the `rewrites` entry in `vercel.json` (Vercel).
-For Railway, build command is `npm run build` and start command is `npm start`.
+- **Vercel/Netlify/Railway:** `npm run build` → `dist/`. SPA rewrites via `vercel.json` / `public/_redirects`.
+- **Railway:** Build `npm run build`, Start `npm start` (serves `dist` via `vite preview`).
+- **CSP:** `index.html` allows `https://*.supabase.co` + `wss://*.supabase.co` for realtime.
+
+## Notes
+- Images downscaled to 900px JPEG (~100KB) before storage (localStorage ~5MB cap, base64 +4/3).
+- Quota errors surface instead of silent loss; concurrent tabs sync via `storage` event + Supabase realtime.
+- For weight surcharge or courier API live quotes, extend `shipping_rates` or integrate `freeship.dzbuild.com`.
