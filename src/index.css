@@ -101,7 +101,9 @@ button:disabled{cursor:not-allowed}
 .no-bar::-webkit-scrollbar{display:none}
 .clamp-2{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
 .hairline{height:1px; background:linear-gradient(90deg, transparent, var(--line), transparent)}
-.shell{max-width:440px; margin:0 auto; background:#fff; min-height:calc(100vh - 28px); overflow:hidden; border:1px solid var(--line); border-radius:22px; box-shadow:var(--shadow-shell); position:relative}
+.shell{max-width:440px; margin:0 auto; background:#fff; min-height:calc(100vh - 28px); overflow:visible; border:1px solid var(--line); border-radius:22px; box-shadow:var(--shadow-shell); position:relative}
+.shell > *{border-radius:inherit}
+.shell .sticky-head{position:sticky; top:0; z-index:20}
 .shell-foot{max-width:440px; margin:10px auto 0; text-align:center; color:#9AA3AF; font-size:10px; letter-spacing:.3px; display:flex; align-items:center; justify-content:center; gap:6px}
 .store-grid{display:grid; grid-template-columns:1fr 1fr; gap:11px}
 @media (min-width:720px){
