@@ -6,7 +6,33 @@ import { supabase, isSupabaseConfigured } from "./supabase.js";
 
 const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || "admin123";
 function getAdminPassword(){ try{ return localStorage.getItem("dz-admin-pw") || ADMIN_PASSWORD; }catch{ return ADMIN_PASSWORD; } }
-function isDefaultPassword(){ return getAdminPassword() === "admin123"; }
+async function fetchAdminPassword(){
+  const local=getAdminPassword();
+  if(isSupabaseConfigured && supabase){
+    try{
+      const {data, error}=await supabase.from("app_settings").select("value").eq("key","admin_password").single();
+      if(!error && data?.value){
+        if(local!==ADMIN_PASSWORD && data.value===ADMIN_PASSWORD){
+          try{ await supabase.from("app_settings").upsert({key:"admin_password", value: local, updated_at:new Date().toISOString()}, {onConflict:"key"}); }catch{}
+          return local;
+        }
+        try{ localStorage.setItem("dz-admin-pw", data.value); }catch{}
+        return data.value;
+      } else if(!error && !data){
+        if(local!==ADMIN_PASSWORD){
+          try{ await supabase.from("app_settings").upsert({key:"admin_password", value: local, updated_at:new Date().toISOString()}, {onConflict:"key"}); }catch{}
+        }
+      }
+    }catch(e){ console.warn("fetch pw failed", e); }
+  }
+  return local;
+}
+async function saveAdminPassword(newPw){
+  try{ localStorage.setItem("dz-admin-pw", newPw); }catch{}
+  if(isSupabaseConfigured && supabase){
+    try{ const {error}=await supabase.from("app_settings").upsert({key:"admin_password", value:newPw, updated_at:new Date().toISOString()}, {onConflict:"key"}); if(error) throw error; }catch(e){ console.warn("save pw to supabase failed", e); }
+  }
+}
 const WILAYAS = ["01 - أدرار","02 - الشلف","03 - الأغواط","04 - أم البواقي","05 - باتنة","06 - بجاية","07 - بسكرة","08 - بشار","09 - البليدة","10 - البويرة","11 - تمنراست","12 - تبسة","13 - تلمسان","14 - تيارت","15 - تيزي وزو","16 - الجزائر","17 - الجلفة","18 - جيجل","19 - سطيف","20 - سعيدة","21 - سكيكدة","22 - سيدي بلعباس","23 - عنابة","24 - قالمة","25 - قسنطينة","26 - المدية","27 - مستغانم","28 - المسيلة","29 - معسكر","30 - ورقلة","31 - وهران","32 - البيض","33 - إليزي","34 - برج بوعريريج","35 - بومرداس","36 - الطارف","37 - تندوف","38 - تيسمسيلت","39 - الوادي","40 - خنشلة","41 - سوق أهراس","42 - تيبازة","43 - ميلة","44 - عين الدفلى","45 - النعامة","46 - عين تموشنت","47 - غرداية","48 - غليزان","49 - تيميمون","50 - برج باجي مختار","51 - أولاد جلال","52 - بني عباس","53 - عين صالح","54 - عين قزام","55 - تقرت","56 - جانت","57 - المغير","58 - المنيعة"];
 const SHIPPING_DEFAULT = {"01":{home:1300,desk:950},"02":{home:850,desk:500},"03":{home:950,desk:600},"04":{home:850,desk:600},"05":{home:850,desk:600},"06":{home:900,desk:500},"07":{home:950,desk:600},"08":{home:1000,desk:700},"09":{home:700,desk:450},"10":{home:800,desk:500},"11":{home:1500,desk:900},"12":{home:1000,desk:550},"13":{home:900,desk:550},"14":{home:900,desk:550},"15":{home:800,desk:500},"16":{home:500,desk:250},"17":{home:950,desk:550},"18":{home:900,desk:500},"19":{home:900,desk:500},"20":{home:900,desk:500},"21":{home:900,desk:500},"22":{home:900,desk:500},"23":{home:850,desk:500},"24":{home:900,desk:500},"25":{home:800,desk:500},"26":{home:800,desk:500},"27":{home:900,desk:500},"28":{home:850,desk:550},"29":{home:900,desk:500},"30":{home:950,desk:650},"31":{home:800,desk:500},"32":{home:1000,desk:650},"33":{home:1500,desk:1000},"34":{home:800,desk:500},"35":{home:700,desk:450},"36":{home:850,desk:500},"37":{home:1500,desk:1000},"38":{home:950,desk:650},"39":{home:950,desk:650},"40":{home:900,desk:500},"41":{home:700,desk:450},"42":{home:700,desk:500},"43":{home:800,desk:500},"44":{home:800,desk:500},"45":{home:1000,desk:650},"46":{home:900,desk:500},"47":{home:950,desk:600},"48":{home:900,desk:500},"49":{home:1300,desk:850},"50":{home:1500,desk:1000},"51":{home:950,desk:500},"52":{home:1000,desk:650},"53":{home:1500,desk:900},"54":{home:1500,desk:900},"55":{home:950,desk:650},"56":{home:1500,desk:1000},"57":{home:950,desk:650},"58":{home:1000,desk:650}};
 function getWilayaCode(w){ return String(w||"").slice(0,2); }
@@ -264,11 +290,12 @@ function AdminLogin(){
   const navigate=useNavigate();
   const [pw,setPw]=useState(""); const [err,setErr]=useState("");
   useEffect(()=>{ if(isAdminAuthenticated()) navigate("/admin",{replace:true}) },[navigate]);
-  const submit=(e)=>{
+  const submit=async(e)=>{
     e.preventDefault();
     const block=Number(localStorage.getItem("dz-admin-block")||0);
     if(Date.now()<block){ const s=Math.ceil((block-Date.now())/1000); return setErr(`محظور مؤقتا — حاول بعد ${s} ثانية`); }
-    if(pw===getAdminPassword()){ localStorage.setItem("dz-admin-auth","true"); localStorage.removeItem("dz-admin-attempts"); localStorage.removeItem("dz-admin-block"); navigate("/admin",{replace:true}); }
+    const curPw=await fetchAdminPassword();
+    if(pw===curPw){ localStorage.setItem("dz-admin-auth","true"); localStorage.removeItem("dz-admin-attempts"); localStorage.removeItem("dz-admin-block"); navigate("/admin",{replace:true}); }
     else {
       const n=Number(localStorage.getItem("dz-admin-attempts")||0)+1;
       localStorage.setItem("dz-admin-attempts", String(n));
@@ -655,12 +682,13 @@ function Dashboard({products,saveProducts,orders,commit,setOrders,setProducts,re
   const [newPw2,setNewPw2]=useState("");
   const [pwErr,setPwErr]=useState("");
   const [pwOk,setPwOk]=useState(false);
-  const handlePwChange=()=>{
+  const handlePwChange=async()=>{
     setPwErr(""); setPwOk(false);
-    if(getAdminPassword()!==curPw) return setPwErr("كلمة المرور الحالية غير صحيحة");
+    const cur=await fetchAdminPassword();
+    if(cur!==curPw) return setPwErr("كلمة المرور الحالية غير صحيحة");
     if(newPw.length<4) return setPwErr("الجديدة قصيرة — 4 أحرف على الأقل");
     if(newPw!==newPw2) return setPwErr("التأكيد غير متطابق");
-    try{ localStorage.setItem("dz-admin-pw", newPw); setPwOk(true); setCurPw(""); setNewPw(""); setNewPw2(""); setTimeout(()=>setPwOk(false),2000); }catch{ setPwErr("تعذر الحفظ"); }
+    try{ await saveAdminPassword(newPw); setPwOk(true); setCurPw(""); setNewPw(""); setNewPw2(""); setTimeout(()=>setPwOk(false),2000); }catch{ setPwErr("تعذر الحفظ"); }
   };
   const logout=()=>{ localStorage.removeItem("dz-admin-auth"); navigate("/admin/login",{replace:true}) };
   const pending=orders.filter(o=>o.status==="قيد الانتظار");

@@ -65,6 +65,17 @@ begin
   end if;
 end $$;
 
+-- 4. app settings (admin password sync across devices)
+create table if not exists app_settings (
+  key text primary key,
+  value text not null,
+  updated_at timestamp with time zone default now()
+);
+insert into app_settings (key, value) values ('admin_password', 'admin123') on conflict (key) do nothing;
+alter table app_settings enable row level security;
+drop policy if exists "public all settings" on app_settings;
+create policy "public all settings" on app_settings for all using (true) with check (true);
+
 -- seed products if empty
 insert into products (id, name, price, quantity, description, img) values
 ('p1','سماعات بلوتوث',3500,25,'صوت نقي مع عزل ضجيج، بطارية 28 ساعة، شحن Type-C.','https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=700&q=80&auto=format'),
