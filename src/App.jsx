@@ -350,12 +350,12 @@ function Storefront({products,placeOrder,lang,setLang,t}){
 }
 const varMuted="#7A7F87";
 function ProductCard({p,onClick,t,lang}){
-  const stock=Number(p.quantity)||0, out=stock<=0, low=stock>0 && stock<=5;
+  const stock=Number(p.quantity)||0, out=stock<=0;
   return (
     <button onClick={onClick} disabled={out} className={out?"":"lift tap"} style={{textAlign: lang==="ar"?"right":"left",background:"#fff",border:"1px solid var(--line)",borderRadius:16,overflow:"hidden",padding:0,cursor:out?"not-allowed":"pointer",display:"flex",flexDirection:"column",position:"relative"}}>
       <div style={{width:"100%",aspectRatio:"1/1",background:`#F3F3F0 ${cssUrl(p.img)} center/cover`,borderBottom:"1px solid var(--line)",position:"relative",overflow:"hidden"}}>
         <div className="zoom" style={{position:"absolute",inset:0,background:`#F3F3F0 ${cssUrl(p.img)} center/cover`}}/>
-        {low && !out && <span style={{position:"absolute",top:8,left: lang==="ar"?8:"auto",right: lang==="ar"?"auto":8,background:"#FFF7ED",border:"1px solid #FDBA74",color:"#9A3412",fontSize:10,fontWeight:800,padding:"3px 7px",borderRadius:20}}>بقي {stock}</span>}
+
         {out && <div style={{position:"absolute",inset:0,background:"rgba(255,255,255,.68)",backdropFilter:"blur(1px)",display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{background:"var(--ink)",color:"#fff",fontSize:11,fontWeight:800,padding:"6px 10px",borderRadius:20,border:"1px solid #1e211e"}}>{t("outOfStock")}</span></div>}
       </div>
       <div style={{padding:"11px 11px 11px",flex:1,display:"flex",flexDirection:"column",gap:7,opacity:out?.5:1}}>
@@ -392,7 +392,7 @@ function ProductDetail({product,onBack,onOrder,t,lang}){
         <div style={{marginTop:14}}>
           <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:10}}>
             <h1 style={{margin:0,fontSize:22,fontWeight:800,letterSpacing:-.5,lineHeight:1.25}}>{product.name}</h1>
-            <span style={{background:out?"#F1F5F9": lowStock(stock)?"#FFFBEB":"var(--ok-soft)",border:out?"1px solid var(--line)": lowStock(stock)?"1px solid var(--warn-line)":"1px solid var(--ok-line)",color:out?varMuted: lowStock(stock)?"#92400E":"#166534",fontSize:11,fontWeight:800,padding:"6px 10px",borderRadius:20,whiteSpace:"nowrap",display:"inline-flex",alignItems:"center",gap:5}}><span style={{width:6,height:6,borderRadius:10,background: out?"#94A3B8": lowStock(stock)?"#F59E0B":"#16A34A"}}/>{out?t("outOfStock"):t("stockLeft",stock)}</span>
+            <span style={{background:out?"#F1F5F9":"var(--ok-soft)",border:out?"1px solid var(--line)":"1px solid var(--ok-line)",color:out?varMuted:"#166534",fontSize:11,fontWeight:800,padding:"6px 10px",borderRadius:20,whiteSpace:"nowrap",display:"inline-flex",alignItems:"center",gap:5}}><span style={{width:6,height:6,borderRadius:10,background: out?"#94A3B8":"#16A34A"}}/>{out?t("outOfStock"):t("available")}</span>
           </div>
           <div style={{marginTop:10,display:"flex",alignItems:"baseline",gap:8,flexWrap:"wrap"}}>
             <span className="num" style={{fontSize:27,fontWeight:800,letterSpacing:-.7}}>{riyal(product.price, lang)}</span>
@@ -460,7 +460,7 @@ function OrderForm({product,onBack,onSubmit,t,lang}){
     if(!wilaya) return setError(t("errWilaya"));
     if(!commune) return setError(t("errCommune"));
     if(Number(capInput)!==cap.ans) return setError(`${t("human")}: ${cap.a} + ${cap.b} = ?`);
-    if(qty>stock) return setError(t("errStock",stock));
+    if(qty>stock) return setError(t("outOfStock"));
     const rl=canPlaceOrder();
     if(!rl.ok) return setError(t("errWait", rl.wait));
     if(isDuplicateOrder(phone.trim(), product.id)) return setError(t("errDup"));
@@ -490,7 +490,7 @@ function OrderForm({product,onBack,onSubmit,t,lang}){
           <div style={{width:56,height:56,borderRadius:12,background:`#fff ${cssUrl(product.img)} center/cover`,border:"1px solid var(--line)",flexShrink:0}}/>
           <div style={{flex:1,minWidth:0}}>
             <div style={{fontWeight:800,fontSize:13,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{product.name}</div>
-            <div style={{display:"flex",alignItems:"baseline",gap:6,marginTop:3}}><span className="num" style={{color:"var(--red)",fontWeight:800,fontSize:13}}>{riyal(product.price, lang)}</span><span style={{color:varMuted,fontSize:11}}>× {qty}</span><span style={{color:"var(--muted-2)",fontSize:10}}>•</span><span className="mono" style={{color:"var(--muted)",fontSize:10.5}}>{t("stockLeft",stock)}</span></div>
+            <div style={{display:"flex",alignItems:"baseline",gap:6,marginTop:3}}><span className="num" style={{color:"var(--red)",fontWeight:800,fontSize:13}}>{riyal(product.price, lang)}</span><span style={{color:varMuted,fontSize:11}}>× {qty}</span></div>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:7,background:"var(--ink)",borderRadius:12,padding:"5px 6px",color:"#fff",border:"1px solid #1e211e",flexShrink:0}}>
             <button onClick={()=>setQty(q=>Math.min(maxQty,q+1))} disabled={qty>=maxQty} className="tap" style={{width:28,height:28,borderRadius:9,border:"1px solid #2a2e2a",background:"#1a1d1a",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",cursor:qty>=maxQty?"not-allowed":"pointer",opacity:qty>=maxQty?.45:1}}><Plus size={12}/></button>
@@ -598,20 +598,30 @@ function Dashboard({products,saveProducts,orders,commit}){
   const addProduct=async(p)=>{ await saveProducts([{...p,id:"p"+Date.now()},...products]); setShowAdd(false) };
   const updateProduct=async(updated)=>{ await saveProducts(products.map(p=>p.id===updated.id?updated:p)); setEditing(null) };
   const setStatus=async(id,s)=>{
-    if(isSupabaseConfigured){
+    if(isSupabaseConfigured && supabase){
       try{
-        const {data: curRow}=await supabase.from("orders").select("*").eq("id", id).single();
+        const {data: curRow, error: fe}=await supabase.from("orders").select("*").eq("id", id).single();
+        if(fe) throw fe;
         if(!curRow || curRow.status===s) return;
         const wasCanceled=curRow.status==="ملغى", nowCanceled=s==="ملغى";
         const shift = wasCanceled===nowCanceled ? 0 : (nowCanceled ? curRow.qty : -curRow.qty);
-        await supabase.from("orders").update({status:s}).eq("id", id);
+        const {error: ue}=await supabase.from("orders").update({status:s}).eq("id", id);
+        if(ue) throw ue;
+        let nextProducts=null;
         if(shift!==0){
-          const {data: prod}=await supabase.from("products").select("quantity").eq("id", curRow.product_id).single();
-          if(prod) await supabase.from("products").update({quantity: Math.max(0, (Number(prod.quantity)||0)+shift)}).eq("id", curRow.product_id);
+          const {data: prod, error: pe}=await supabase.from("products").select("quantity").eq("id", curRow.product_id).single();
+          if(pe) throw pe;
+          const newQty=Math.max(0, (Number(prod.quantity)||0)+shift);
+          const {error: pUe}=await supabase.from("products").update({quantity: newQty}).eq("id", curRow.product_id);
+          if(pUe) throw pUe;
+          nextProducts=products.map(p=>p.id===curRow.product_id?{...p, quantity:newQty}:p);
         }
-        load();
+        const nextOrders=orders.map(o=>o.id===id?{...o, status:s}:o);
+        setOrders(nextOrders);
+        if(nextProducts) setProducts(nextProducts);
+        try{ await storageSet("dz-store-orders", nextOrders); if(nextProducts) await storageSet("dz-store-products", nextProducts); }catch{}
         return;
-      }catch(e){ console.warn(e); setErr("تعذر تحديث الطلب"); return; }
+      }catch(e){ console.error("setStatus supabase failed", e); setErr(e.message?.includes("policy") ? "خطأ صلاحيات — شغّل supabase.sql" : "تعذر تحديث الطلب: "+(e.message||"خطأ")); return; }
     }
     const freshOrders=(await storageGet("dz-store-orders"))||orders;
     const freshProducts=(await storageGet("dz-store-products"))||products;
