@@ -137,15 +137,17 @@ export default function App(){
     return ()=>window.removeEventListener("storage",onStorage);
   },[]);
   useEffect(()=>{
-    if(!isSupabaseConfigured) return;
-    const ch=supabase.channel("dz-store").on("postgres_changes",{event:"*",schema:"public",table:"products"}, async()=>{
-      const {data}=await supabase.from("products").select("*").order("created_at",{ascending:false});
-      if(data) setProducts(data.map(x=>({id:x.id, name:x.name, price:x.price, quantity:Number(x.quantity)||0, desc:x.description||"", img:x.img})));
-    }).on("postgres_changes",{event:"*",schema:"public",table:"orders"}, async()=>{
-      const {data}=await supabase.from("orders").select("*").order("created_at",{ascending:false});
-      if(data) setOrders(data.map(o=>({id:o.id, productId:o.product_id, productName:o.product_name, price:o.price, qty:o.qty, subtotal:o.subtotal, shippingFee:o.shipping_fee, total:o.total, firstName:o.first_name, lastName:o.last_name, phone:o.phone, wilaya:o.wilaya, commune:o.commune, delivery:o.delivery, status:o.status, createdAt:o.created_at})));
-    }).subscribe();
-    return ()=>{ supabase.removeChannel(ch); };
+    if(!isSupabaseConfigured || !supabase) return;
+    try{
+      const ch=supabase.channel("dz-store").on("postgres_changes",{event:"*",schema:"public",table:"products"}, async()=>{
+        try{ const {data}=await supabase.from("products").select("*").order("created_at",{ascending:false});
+        if(data) setProducts(data.map(x=>({id:x.id, name:x.name, price:x.price, quantity:Number(x.quantity)||0, desc:x.description||"", img:x.img}))); }catch{}
+      }).on("postgres_changes",{event:"*",schema:"public",table:"orders"}, async()=>{
+        try{ const {data}=await supabase.from("orders").select("*").order("created_at",{ascending:false});
+        if(data) setOrders(data.map(o=>({id:o.id, productId:o.product_id, productName:o.product_name, price:o.price, qty:o.qty, subtotal:o.subtotal, shippingFee:o.shipping_fee, total:o.total, firstName:o.first_name, lastName:o.last_name, phone:o.phone, wilaya:o.wilaya, commune:o.commune, delivery:o.delivery, status:o.status, createdAt:o.created_at}))); }catch{}
+      }).subscribe();
+      return ()=>{ try{ supabase.removeChannel(ch); }catch{} };
+    }catch(e){ console.warn("realtime failed", e); }
   },[]);
   const commit=async(nextOrders,nextProducts)=>{
     if(isSupabaseConfigured){
