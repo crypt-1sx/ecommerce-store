@@ -14,7 +14,7 @@ create table if not exists products (
 -- 2. orders
 create table if not exists orders (
   id text primary key,
-  product_id text references products(id),
+  product_id text references products(id) on delete set null,
   product_name text not null,
   price int not null,
   qty int not null,
@@ -55,6 +55,15 @@ create policy "public all orders" on orders for all using (true) with check (tru
 
 drop policy if exists "public all shipping" on shipping_rates;
 create policy "public all shipping" on shipping_rates for all using (true) with check (true);
+
+-- Fix existing FK to allow product delete (if you already ran old sql, run this)
+do $$
+begin
+  if exists (select 1 from information_schema.table_constraints where constraint_name='orders_product_id_fkey' and table_name='orders') then
+    alter table orders drop constraint orders_product_id_fkey;
+    alter table orders add constraint orders_product_id_fkey foreign key (product_id) references products(id) on delete set null;
+  end if;
+end $$;
 
 -- seed products if empty
 insert into products (id, name, price, quantity, description, img) values

@@ -161,8 +161,11 @@ export default function App(){
             await supabase.from("products").upsert({id:prod.id, name:prod.name, price:prod.price, quantity:prod.quantity, description:prod.desc, img:prod.img}, {onConflict:"id"});
           }
           const ids=nextProducts.map(p=>p.id);
-          const {data: all}=await supabase.from("products").select("id");
-          if(all){ for(const row of all){ if(!ids.includes(row.id)) await supabase.from("products").delete().eq("id", row.id); } }
+          const {data: all, error: ae}=await supabase.from("products").select("id");
+          if(ae) throw ae;
+          if(all){ for(const row of all){ if(!ids.includes(row.id)){
+            try{ const {error: de}=await supabase.from("products").delete().eq("id", row.id); if(de && de.message?.includes("foreign key")){ await supabase.from("orders").update({product_id: null}).eq("product_id", row.id); const {error: de2}=await supabase.from("products").delete().eq("id", row.id); if(de2) throw de2; } else if(de) throw de; }catch(e){ throw e; }
+          } } }
         }
         if(nextOrders){
           for(const o of nextOrders){
@@ -184,16 +187,26 @@ export default function App(){
     if(nextProducts) setProducts(nextProducts);
   };
   const saveProducts=async(n)=>{
-    if(isSupabaseConfigured){
+    if(isSupabaseConfigured && supabase){
       try{
         const currentIds=new Set(n.map(p=>p.id));
-        for(const p of n){ await supabase.from("products").upsert({id:p.id, name:p.name, price:p.price, quantity:p.quantity, description:p.desc, img:p.img}, {onConflict:"id"}); }
-        const {data: all}=await supabase.from("products").select("id");
-        if(all) for(const row of all) if(!currentIds.has(row.id)) await supabase.from("products").delete().eq("id", row.id);
+        for(const p of n){ const {error}=await supabase.from("products").upsert({id:p.id, name:p.name, price:p.price, quantity:p.quantity, description:p.desc, img:p.img}, {onConflict:"id"}); if(error) throw error; }
+        const {data: all, error: ae}=await supabase.from("products").select("id");
+        if(ae) throw ae;
+        if(all) for(const row of all) if(!currentIds.has(row.id)){
+          try{
+            const {error: de}=await supabase.from("products").delete().eq("id", row.id);
+            if(de && de.message?.includes("foreign key")){
+              await supabase.from("orders").update({product_id: null}).eq("product_id", row.id);
+              const {error: de2}=await supabase.from("products").delete().eq("id", row.id);
+              if(de2) throw de2;
+            } else if(de) throw de;
+          }catch(de){ console.warn("delete failed", row.id, de); throw de; }
+        }
         setProducts(n);
         await storageSet("dz-store-products",n).catch(()=>{});
         return;
-      }catch(e){ console.warn(e); }
+      }catch(e){ console.warn("saveProducts supabase failed, fallback", e); }
     }
     return commit(null,n);
   };
