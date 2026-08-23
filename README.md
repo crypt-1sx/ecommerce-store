@@ -9,6 +9,18 @@ React + Vite storefront for Algeria: 58 wilayas, 1,541 communes, per-wilaya ship
 - **Orders:** phone validation, duplicate/rate-limit protection, status workflow (`pending` → `confirmed` → `delivered` / `cancelled` with stock return)
 - **Realtime DB:** Supabase (`products`, `orders`, `shipping_rates`) with localStorage fallback
 
+## Screenshots
+
+### Store — Client View
+| Home | Product Detail | Checkout |
+|---|---|---|
+| ![Store Home](docs/screenshots/store-01.jpg) | ![Product](docs/screenshots/store-02.jpg) | ![Checkout](docs/screenshots/store-03.jpg) |
+
+### Admin — Seller Dashboard
+| Dashboard | Orders / Shipping |
+|---|---|
+| ![Admin 1](docs/screenshots/admin-01.jpg) | ![Admin 2](docs/screenshots/admin-02.jpg) |
+
 ## Quick Start
 ```bash
 npm install
