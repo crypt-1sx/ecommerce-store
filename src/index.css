@@ -1,19 +1,41 @@
 :root{
   --ink:#0C0E0B;
-  --sky:#D6E8F4;
-  --sky-2:#EDF4FB;
+  --ink-2:#1A1E18;
+  --ink-3:#2A2F27;
   --red:#D7303B;
   --red-2:#A51E27;
   --red-soft:#FFF1F1;
+  --red-line:#F1C6C9;
+  --sky:#D6E8F4;
+  --sky-2:#EDF4FB;
+  --sky-3:#BAD6E9;
   --paper:#FFFFFF;
   --paper-2:#F6F3EE;
+  --paper-3:#FBFAF7;
+  --paper-4:#F8FAFC;
   --line:#E8E2D9;
   --line-2:#EAEDEF;
   --muted:#7A7F87;
+  --muted-2:#9AA3AF;
+  --ok:#16A34A;
+  --ok-soft:#F0FDF4;
+  --ok-line:#BBF7D0;
+  --warn:#B45309;
+  --warn-soft:#FFFBEB;
+  --warn-line:#FDE68A;
   --radius:14px;
+  --r-sm:10px;
+  --r-md:12px;
+  --r-lg:18px;
+  --r-xl:22px;
+  --shadow-card:0 1px 2px rgba(12,14,11,.05);
+  --shadow-lift:0 8px 24px -14px rgba(12,14,11,.20), 0 4px 10px -4px rgba(12,14,11,.08);
+  --shadow-bar:0 -10px 30px -16px rgba(12,14,11,.20);
+  --shadow-shell:0 1px 3px rgba(12,14,11,.06), 0 24px 60px -34px rgba(12,14,11,.28);
+  --ease:cubic-bezier(.2,.7,.3,1);
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth; -webkit-text-size-adjust:100%}
 body{
   font-family:"IBM Plex Sans Arabic","Instrument Sans",system-ui,sans-serif;
   color:var(--ink);
@@ -22,10 +44,60 @@ body{
   text-rendering:optimizeLegibility;
   letter-spacing:-.01em;
 }
-button,input,select,textarea{font:inherit}
+button,input,select,textarea{font:inherit; color:inherit}
+button{-webkit-appearance:none; appearance:none}
 ::selection{background:var(--sky)}
-input:focus,select:focus,textarea:focus{outline:none; border-color:var(--ink)!important; box-shadow:none!important}
-.mono{font-family:"JetBrains Mono",monospace; letter-spacing:-.02em}
+::placeholder{color:var(--muted-2); opacity:1}
+.mono{font-family:"JetBrains Mono",monospace; letter-spacing:-.02em; font-variant-numeric:tabular-nums}
+.num{font-variant-numeric:tabular-nums}
 .rule{height:1px; background:var(--line); width:100%}
-.fade-in{animation: fade .28s ease}
-@keyframes fade{from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:translateY(0)}}
+:focus{outline:none}
+:focus-visible{outline:none; border-color:var(--ink); box-shadow:0 0 0 3px var(--sky)}
+.field:focus-visible,.field:focus{border-color:var(--ink); background:var(--paper); box-shadow:0 0 0 3px var(--sky)}
+.field{transition:border-color .16s var(--ease), box-shadow .16s var(--ease), background .16s var(--ease)}
+.field:hover:not(:focus){border-color:#D9D2C7}
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none; margin:0}
+select.field{
+  -webkit-appearance:none; appearance:none;
+  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%237A7F87' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 13px center;
+  padding-right:34px;
+}
+[dir=rtl] select.field{background-position:left 13px center; padding-right:13px; padding-left:34px}
+.tap{transition:transform .12s var(--ease), box-shadow .18s var(--ease), border-color .18s var(--ease), background .18s var(--ease), opacity .18s var(--ease)}
+.tap:active:not(:disabled){transform:scale(.985)}
+.lift{transition:transform .22s var(--ease), box-shadow .22s var(--ease), border-color .22s var(--ease)}
+@media (hover:hover){
+  .lift:hover:not(:disabled){transform:translateY(-2px); box-shadow:var(--shadow-lift); border-color:#DBD4C8}
+  .lift:hover:not(:disabled) .zoom{transform:scale(1.03)}
+  .btn-red:hover:not(:disabled){background:var(--red-2)}
+  .btn-ink:hover:not(:disabled){background:var(--ink-2)}
+  .btn-quiet:hover:not(:disabled){background:var(--paper-3); border-color:#DBD4C8}
+}
+.lift:active:not(:disabled){transform:translateY(0) scale(.988)}
+.zoom{transition:transform .5s var(--ease)}
+.btn-red,.btn-ink,.btn-quiet{transition:background .16s var(--ease), border-color .16s var(--ease), box-shadow .16s var(--ease), transform .12s var(--ease)}
+.btn-red:active:not(:disabled),.btn-ink:active:not(:disabled),.btn-quiet:active:not(:disabled){transform:scale(.985)}
+button:disabled{cursor:not-allowed}
+.fade-in{animation:fade .28s var(--ease) both}
+@keyframes fade{from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none}}
+.rise{animation:rise .42s var(--ease) both}
+@keyframes rise{from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none}}
+.slide-up{animation:slideUp .32s var(--ease) both}
+@keyframes slideUp{from{transform:translateY(12px); opacity:.65} to{transform:none; opacity:1}}
+.pop{animation:pop .48s var(--ease) both}
+@keyframes pop{0%{transform:scale(.86); opacity:0} 60%{transform:scale(1.02)} 100%{transform:scale(1); opacity:1}}
+.draw{animation:draw .45s .1s var(--ease) both}
+@keyframes draw{from{stroke-dashoffset:26} to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important}
+  .lift:hover{transform:none}
+}
+.no-bar{scrollbar-width:none; -ms-overflow-style:none}
+.no-bar::-webkit-scrollbar{display:none}
+.clamp-2{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+.hairline{height:1px; background:linear-gradient(90deg, transparent, var(--line), transparent)}
