@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { Plus, Minus, X, Check, Trash2, Package, ClipboardList, ArrowRight, Store, Truck, Building2, Lock, LogOut, ArrowUpLeft, ShieldCheck, Sparkles, Pencil, Upload, Image as ImageIcon, Clock, Shield, Star, Info, MapPin } from "lucide-react";
 import { COMMUNES } from "./communes.js";
+import { supabase, isSupabaseConfigured } from "./supabase.js";
 
 const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || "admin123";
 const IS_DEFAULT_PW = ADMIN_PASSWORD === "admin123";
@@ -87,6 +88,36 @@ export default function App(){
   const [loading,setLoading]=useState(true);
   const load=useCallback(async()=>{
     setLoading(true);
+    if(isSupabaseConfigured){
+      try{
+        const {data: prods, error: pe} = await supabase.from("products").select("*").order("created_at",{ascending:false});
+        const {data: ords, error: oe} = await supabase.from("orders").select("*").order("created_at",{ascending:false});
+        const {data: rates} = await supabase.from("shipping_rates").select("*");
+        if(rates && rates.length){ const m={}; rates.forEach(r=> m[r.wilaya_code]={home:r.home,desk:r.desk}); localStorage.setItem("dz-shipping-rates", JSON.stringify(m)); }
+        if(!pe && prods){
+          if(prods.length===0){
+            for(const s of SEED_PRODUCTS){ await supabase.from("products").insert({id:s.id, name:s.name, price:s.price, quantity:s.quantity, description:s.desc, img:s.img}).then(()=>{}).catch(()=>{}); }
+            const {data: seeded}=await supabase.from("products").select("*").order("created_at",{ascending:false});
+            setProducts((seeded||SEED_PRODUCTS).map(x=>({...x, quantity:Number(x.quantity)||0})));
+          } else {
+            setProducts(prods.map(x=>({id:x.id, name:x.name, price:x.price, quantity:Number(x.quantity)||0, desc:x.description||"", img:x.img})));
+          }
+        } else {
+          let p=await storageGet("dz-store-products");
+          if(!p){ p=SEED_PRODUCTS; await storageSet("dz-store-products",p).catch(()=>{}) } else { p=p.map(x=>({...x, quantity:Number(x.quantity)||0})); }
+          setProducts(p);
+        }
+        if(!oe && ords){
+          setOrders(ords.map(o=>({id:o.id, productId:o.product_id, productName:o.product_name, price:o.price, qty:o.qty, subtotal:o.subtotal, shippingFee:o.shipping_fee, total:o.total, firstName:o.first_name, lastName:o.last_name, phone:o.phone, wilaya:o.wilaya, commune:o.commune, delivery:o.delivery, status:o.status, createdAt:o.created_at})));
+        } else {
+          let o=await storageGet("dz-store-orders");
+          if(!o){ o=[]; await storageSet("dz-store-orders",o).catch(()=>{}) }
+          setOrders(o);
+        }
+        setLoading(false);
+        return;
+      }catch(e){ console.warn("supabase load failed, fallback to local", e); }
+    }
     let p=await storageGet("dz-store-products");
     let o=await storageGet("dz-store-orders");
     if(!p){ p=SEED_PRODUCTS; await storageSet("dz-store-products",p).catch(()=>{}) }
@@ -100,12 +131,43 @@ export default function App(){
       try{
         if(e.key==="dz-store-products") setProducts(JSON.parse(e.newValue||"[]"));
         if(e.key==="dz-store-orders") setOrders(JSON.parse(e.newValue||"[]"));
-      }catch{/* ignore */}
+      }catch{}
     };
     window.addEventListener("storage",onStorage);
     return ()=>window.removeEventListener("storage",onStorage);
   },[]);
+  useEffect(()=>{
+    if(!isSupabaseConfigured) return;
+    const ch=supabase.channel("dz-store").on("postgres_changes",{event:"*",schema:"public",table:"products"}, async()=>{
+      const {data}=await supabase.from("products").select("*").order("created_at",{ascending:false});
+      if(data) setProducts(data.map(x=>({id:x.id, name:x.name, price:x.price, quantity:Number(x.quantity)||0, desc:x.description||"", img:x.img})));
+    }).on("postgres_changes",{event:"*",schema:"public",table:"orders"}, async()=>{
+      const {data}=await supabase.from("orders").select("*").order("created_at",{ascending:false});
+      if(data) setOrders(data.map(o=>({id:o.id, productId:o.product_id, productName:o.product_name, price:o.price, qty:o.qty, subtotal:o.subtotal, shippingFee:o.shipping_fee, total:o.total, firstName:o.first_name, lastName:o.last_name, phone:o.phone, wilaya:o.wilaya, commune:o.commune, delivery:o.delivery, status:o.status, createdAt:o.created_at})));
+    }).subscribe();
+    return ()=>{ supabase.removeChannel(ch); };
+  },[]);
   const commit=async(nextOrders,nextProducts)=>{
+    if(isSupabaseConfigured){
+      try{
+        if(nextProducts){
+          for(const prod of nextProducts){
+            await supabase.from("products").upsert({id:prod.id, name:prod.name, price:prod.price, quantity:prod.quantity, description:prod.desc, img:prod.img}, {onConflict:"id"});
+          }
+          const ids=nextProducts.map(p=>p.id);
+          const {data: all}=await supabase.from("products").select("id");
+          if(all){ for(const row of all){ if(!ids.includes(row.id)) await supabase.from("products").delete().eq("id", row.id); } }
+        }
+        if(nextOrders){
+          for(const o of nextOrders){
+            const exists=orders?.find(x=>x.id===o.id);
+            if(!exists){
+              await supabase.from("orders").insert({id:o.id, product_id:o.productId, product_name:o.productName, price:o.price, qty:o.qty, subtotal:o.subtotal, shipping_fee:o.shippingFee, total:o.total, first_name:o.firstName, last_name:o.lastName, phone:o.phone, wilaya:o.wilaya, commune:o.commune, delivery:o.delivery, status:o.status, created_at:o.createdAt});
+            }
+          }
+        }
+      }catch(e){ console.warn("supabase commit failed, fallback local", e); }
+    }
     const prevOrders=nextOrders?await storageGet("dz-store-orders"):null;
     if(nextOrders) await storageSet("dz-store-orders",nextOrders);
     if(nextProducts){
@@ -115,8 +177,41 @@ export default function App(){
     if(nextOrders) setOrders(nextOrders);
     if(nextProducts) setProducts(nextProducts);
   };
-  const saveProducts=(n)=>commit(null,n);
+  const saveProducts=async(n)=>{
+    if(isSupabaseConfigured){
+      try{
+        const currentIds=new Set(n.map(p=>p.id));
+        for(const p of n){ await supabase.from("products").upsert({id:p.id, name:p.name, price:p.price, quantity:p.quantity, description:p.desc, img:p.img}, {onConflict:"id"}); }
+        const {data: all}=await supabase.from("products").select("id");
+        if(all) for(const row of all) if(!currentIds.has(row.id)) await supabase.from("products").delete().eq("id", row.id);
+        setProducts(n);
+        await storageSet("dz-store-products",n).catch(()=>{});
+        return;
+      }catch(e){ console.warn(e); }
+    }
+    return commit(null,n);
+  };
   const placeOrder=async(payload)=>{
+    if(isSupabaseConfigured){
+      try{
+        const {data: prodRows}=await supabase.from("products").select("*").eq("id", payload.productId).single();
+        if(!prodRows) throw new Error("GONE");
+        const left=Number(prodRows.quantity)||0;
+        if(left<payload.qty) throw Object.assign(new Error("STOCK"),{left});
+        const orderId="o"+Date.now();
+        const orderRow={id:orderId, product_id:payload.productId, product_name:payload.productName, price:payload.price, qty:payload.qty, subtotal:payload.subtotal, shipping_fee:payload.shippingFee, total:payload.total, first_name:payload.firstName, last_name:payload.lastName, phone:payload.phone, wilaya:payload.wilaya, commune:payload.commune, delivery:payload.delivery, status:"قيد الانتظار", created_at:new Date().toISOString()};
+        const {error: ie}=await supabase.from("orders").insert(orderRow);
+        if(ie) throw ie;
+        const {error: ue}=await supabase.from("products").update({quantity:left - payload.qty}).eq("id", payload.productId);
+        if(ue) throw ue;
+        const order={id:orderId, ...payload, status:"قيد الانتظار", createdAt: orderRow.created_at};
+        setOrders(prev=>[order, ...(prev||[])]);
+        setProducts(prev=>prev.map(p=>p.id===payload.productId?{...p, quantity:left - payload.qty}:p));
+        await storageSet("dz-store-orders", [order, ...(await storageGet("dz-store-orders")||[])]).catch(()=>{});
+        await storageSet("dz-store-products", products.map(p=>p.id===payload.productId?{...p, quantity:left - payload.qty}:p)).catch(()=>{});
+        return order;
+      }catch(e){ if(e.message==="GONE"||e.message==="STOCK") throw e; console.warn("supabase order failed, fallback", e); }
+    }
     const freshOrders=(await storageGet("dz-store-orders"))||[];
     const freshProducts=(await storageGet("dz-store-products"))||[];
     const prod=freshProducts.find(p=>p.id===payload.productId);
@@ -501,6 +596,21 @@ function Dashboard({products,saveProducts,orders,commit}){
   const addProduct=async(p)=>{ await saveProducts([{...p,id:"p"+Date.now()},...products]); setShowAdd(false) };
   const updateProduct=async(updated)=>{ await saveProducts(products.map(p=>p.id===updated.id?updated:p)); setEditing(null) };
   const setStatus=async(id,s)=>{
+    if(isSupabaseConfigured){
+      try{
+        const {data: curRow}=await supabase.from("orders").select("*").eq("id", id).single();
+        if(!curRow || curRow.status===s) return;
+        const wasCanceled=curRow.status==="ملغى", nowCanceled=s==="ملغى";
+        const shift = wasCanceled===nowCanceled ? 0 : (nowCanceled ? curRow.qty : -curRow.qty);
+        await supabase.from("orders").update({status:s}).eq("id", id);
+        if(shift!==0){
+          const {data: prod}=await supabase.from("products").select("quantity").eq("id", curRow.product_id).single();
+          if(prod) await supabase.from("products").update({quantity: Math.max(0, (Number(prod.quantity)||0)+shift)}).eq("id", curRow.product_id);
+        }
+        load();
+        return;
+      }catch(e){ console.warn(e); setErr("تعذر تحديث الطلب"); return; }
+    }
     const freshOrders=(await storageGet("dz-store-orders"))||orders;
     const freshProducts=(await storageGet("dz-store-products"))||products;
     const cur=freshOrders.find(o=>o.id===id);
@@ -668,10 +778,28 @@ function OrderCard({order,setStatus}){
 function ShippingEditor(){
   const [rates,setRates]=useState(()=>getShippingRates());
   const [saved,setSaved]=useState(false);
-  const save=()=>{
-    try{ localStorage.setItem("dz-shipping-rates", JSON.stringify(rates)); setSaved(true); setTimeout(()=>setSaved(false),1600) }catch{ alert("تعذر الحفظ") }
+  useEffect(()=>{
+    if(!isSupabaseConfigured) return;
+    supabase.from("shipping_rates").select("*").then(({data})=>{
+      if(data && data.length){ const m={}; data.forEach(r=> m[r.wilaya_code]={home:r.home,desk:r.desk}); setRates({...SHIPPING_DEFAULT, ...m}); localStorage.setItem("dz-shipping-rates", JSON.stringify({...SHIPPING_DEFAULT, ...m})); }
+    });
+  },[]);
+  const save=async()=>{
+    try{
+      localStorage.setItem("dz-shipping-rates", JSON.stringify(rates));
+      if(isSupabaseConfigured){
+        for(const code of Object.keys(rates)){
+          await supabase.from("shipping_rates").upsert({wilaya_code:code, home:rates[code].home, desk:rates[code].desk}, {onConflict:"wilaya_code"});
+        }
+      }
+      setSaved(true); setTimeout(()=>setSaved(false),1600)
+    }catch{ alert("تعذر الحفظ") }
   };
-  const reset=()=>{ localStorage.removeItem("dz-shipping-rates"); setRates({...SHIPPING_DEFAULT}); };
+  const reset=async()=>{
+    localStorage.removeItem("dz-shipping-rates");
+    setRates({...SHIPPING_DEFAULT});
+    if(isSupabaseConfigured){ for(const code of Object.keys(SHIPPING_DEFAULT)){ await supabase.from("shipping_rates").upsert({wilaya_code:code, home:SHIPPING_DEFAULT[code].home, desk:SHIPPING_DEFAULT[code].desk}, {onConflict:"wilaya_code"}); } }
+  };
   return (
     <div style={{padding:"10px 14px"}}>
       <div style={{background:"var(--paper-4)",border:"1px solid var(--line)",borderRadius:14,padding:12,display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}>
