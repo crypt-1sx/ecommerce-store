@@ -5,7 +5,7 @@ React + Vite storefront for Algeria: 58 wilayas, 1,541 communes, per-wilaya ship
 ## Features
 - **Storefront:** responsive (phone 440px → 780px → 1120px), sticky header, trust bar, 2/3/4-col grid, product detail, order flow with human check
 - **Checkout:** wilaya → filtered commune, home/desk delivery, live shipping fee (per-wilaya `home`/`desk`), breakdown `subtotal + shipping = total`
-- **Stock:** client never sees quantity (only `available` / `out of stock`); admin sees stock; max 10 per order
+- **Stock:** admin sees stock; max 10 per order
 - **Orders:** phone validation, duplicate/rate-limit protection, status workflow (`pending` → `confirmed` → `delivered` / `cancelled` with stock return)
 - **Realtime DB:** Supabase (`products`, `orders`, `shipping_rates`) with localStorage fallback
 
