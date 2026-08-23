@@ -131,7 +131,7 @@ export default function App(){
   return (
     <BrowserRouter>
       <div dir={lang==="ar"?"rtl":"ltr"} style={{background:"var(--paper-2)",minHeight:"100vh",padding:"10px 10px 18px"}}>
-        <div style={{maxWidth:440,margin:"0 auto",background:"#fff",minHeight:"calc(100vh - 28px)",overflow:"hidden",border:"1px solid var(--line)",borderRadius:22,boxShadow:"var(--shadow-shell)",position:"relative"}}>
+        <div className="shell">
           <Routes>
             <Route path="/" element={<Storefront products={products} placeOrder={placeOrder} lang={lang} setLang={setLang} t={t} />} />
             <Route path="/admin/login" element={<AdminLogin />} />
@@ -139,7 +139,7 @@ export default function App(){
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
-        <div style={{maxWidth:440,margin:"10px auto 0",textAlign:"center",color:"#9AA3AF",fontSize:10,letterSpacing:.3,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}><span style={{width:4,height:4,borderRadius:10,background:"#CBD5E1"}}/> DZ Store 2026 — crypt-1sx Dev <span style={{width:4,height:4,borderRadius:10,background:"#CBD5E1"}}/></div>
+        <div className="shell-foot"><span style={{width:4,height:4,borderRadius:10,background:"#CBD5E1"}}/> DZ Store 2026 — crypt-1sx Dev <span style={{width:4,height:4,borderRadius:10,background:"#CBD5E1"}}/></div>
       </div>
     </BrowserRouter>
   );
@@ -214,7 +214,7 @@ function Storefront({products,placeOrder,lang,setLang,t}){
         <div style={{width:34,height:34,borderRadius:11,background:"var(--ink)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,border:"1px solid #1e211e"}}><Store size={15} color="#fff"/></div>
         <div style={{lineHeight:1}}>
           <div style={{fontWeight:800,fontSize:14,letterSpacing:-.3,color:"var(--ink)",display:"flex",alignItems:"center",gap:6}}>{t("banner")} <span style={{fontSize:10,fontWeight:700,letterSpacing:.5,color:"var(--muted)",background:"var(--paper-4)",border:"1px solid var(--line)",padding:"2px 6px",borderRadius:20}}>DZ • 2026</span></div>
-          <div style={{fontSize:10.5,color:"var(--muted)",marginTop:1,display:"flex",alignItems:"center",gap:6}}><ShieldCheck size={11}/> دفع عند الاستلام • توصيل 58 ولاية</div>
+          <div style={{fontSize:10.5,color:"var(--muted)",marginTop:1,display:"flex",alignItems:"center",gap:6}}><ShieldCheck size={11}/> توصيل 58 ولاية • تأكيد هاتفي</div>
         </div>
         <button onClick={()=>setLang(lang==="ar"?"en":"ar")} className="tap" style={{marginInlineStart:"auto",background:lang==="ar"?"var(--ink)":"#fff",border:"1px solid var(--line)",color:lang==="ar"?"#fff":"var(--ink)",borderRadius:20,padding:"6px 11px",fontSize:11,fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",gap:5}}><span style={{width:6,height:6,borderRadius:10,background:lang==="ar"?"var(--sky)":"var(--red)"}}/>{lang==="ar"?"EN":"AR"}</button>
       </div>
@@ -236,17 +236,17 @@ function Storefront({products,placeOrder,lang,setLang,t}){
         <span className="mono" style={{fontSize:11,color:"var(--muted)",background:"var(--paper-4)",border:"1px solid var(--line)",padding:"4px 8px",borderRadius:20}}>{products.length} {lang==="ar"?"منتج":"items"}</span>
       </div>
       <div style={{padding:"10px 14px 0",display:"flex",gap:7,alignItems:"center",color:"var(--muted)",fontSize:11}}>
-        <span style={{display:"flex",alignItems:"center",gap:5}}><Star size={11} color="#D97706"/> جودة مضمونة</span><span style={{width:3,height:3,borderRadius:10,background:"var(--line)"}}/><span style={{display:"flex",alignItems:"center",gap:5}}><Shield size={11}/> دفع عند الاستلام</span><span style={{width:3,height:3,borderRadius:10,background:"var(--line)"}}/><span style={{display:"flex",alignItems:"center",gap:5}}><Clock size={11}/> توصيل 24-48س</span>
+        <span style={{display:"flex",alignItems:"center",gap:5}}><Star size={11} color="#D97706"/> جودة مضمونة</span><span style={{width:3,height:3,borderRadius:10,background:"var(--line)"}}/><span style={{display:"flex",alignItems:"center",gap:5}}><Shield size={11}/> تأكيد هاتفي</span><span style={{width:3,height:3,borderRadius:10,background:"var(--line)"}}/><span style={{display:"flex",alignItems:"center",gap:5}}><Clock size={11}/> توصيل 24-48س</span>
       </div>
 
-      <div style={{padding:"12px 14px 0",display:"grid",gridTemplateColumns:"1fr 1fr",gap:11}}>
+      <div className="store-grid" style={{padding:"12px 14px 0"}}>
         {products.map(p=> <ProductCard key={p.id} p={p} onClick={()=>setSelected(p)} t={t} lang={lang} />)}
         {products.length===0 && <div style={{gridColumn:"1/3",background:"var(--paper-4)",border:"1px dashed var(--line)",borderRadius:16,padding:22,textAlign:"center",color:varMuted,fontSize:13}}>{t("empty")}</div>}
       </div>
 
       <div style={{margin:"16px 14px 0",background:"var(--paper-4)",border:"1px solid var(--line)",borderRadius:14,padding:"10px 12px",display:"flex",alignItems:"center",gap:10}}>
         <div style={{width:28,height:28,borderRadius:9,background:"#fff",border:"1px solid var(--line)",display:"flex",alignItems:"center",justifyContent:"center"}}><Info size={13} color="var(--muted)"/></div>
-        <div style={{fontSize:11.5,color:"var(--muted)",lineHeight:1.6}}>{lang==="ar"?"جميع الأسعار تشمل التأكيد الهاتفي. لا يوجد دفع مسبق.":"All prices include phone confirmation. No prepayment required."}</div>
+        <div style={{fontSize:11.5,color:"var(--muted)",lineHeight:1.6}}>{lang==="ar"?"التوصيل محسوب حسب الولاية والبلدية.":"Shipping calculated by wilaya & commune."}</div>
       </div>
     </div>
   );
@@ -281,7 +281,7 @@ function ProductDetail({product,onBack,onOrder,t,lang}){
         <span style={{fontWeight:800,fontSize:13.5,letterSpacing:-.2}}>{t("detail")}</span>
         <span className="mono" style={{marginInlineStart:"auto",fontSize:11,color:"var(--muted)",background:"var(--paper-4)",border:"1px solid var(--line)",padding:"5px 8px",borderRadius:20}}>{product.id.toUpperCase()}</span>
       </div>
-      <div style={{padding:14}}>
+      <div className="detail-layout" style={{padding:14}}>
         <div style={{background:"var(--paper-4)",border:"1px solid var(--line)",borderRadius:20,padding:10}}>
           <div style={{width:"100%",aspectRatio:"1/1",borderRadius:14,background:`#fff ${cssUrl(product.img)} center/cover`,border:"1px solid var(--line)",boxShadow:"var(--shadow-card)",overflow:"hidden",position:"relative"}}>
             <div style={{position:"absolute",top:10,left:10,display:"flex",gap:6}}>
@@ -299,7 +299,7 @@ function ProductDetail({product,onBack,onOrder,t,lang}){
           </div>
           <div style={{marginTop:10,display:"flex",alignItems:"baseline",gap:8,flexWrap:"wrap"}}>
             <span className="num" style={{fontSize:27,fontWeight:800,letterSpacing:-.7}}>{riyal(product.price, lang)}</span>
-            <span style={{fontSize:11.5,color:"var(--muted)",background:"var(--paper-4)",border:"1px solid var(--line)",padding:"4px 8px",borderRadius:20}}>COD • دفع عند الاستلام</span>
+            <span style={{fontSize:11.5,color:"var(--muted)",background:"var(--paper-4)",border:"1px solid var(--line)",padding:"4px 8px",borderRadius:20}}>شحن محسوب عند الطلب</span>
           </div>
           <div style={{marginTop:12,background:"var(--paper-4)",border:"1px solid var(--line)",borderRadius:14,padding:12,display:"flex",gap:10}}>
             <div style={{width:30,height:30,borderRadius:10,background:"#fff",border:"1px solid var(--line)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Sparkles size={14} color="var(--ink)"/></div>
@@ -317,7 +317,7 @@ function ProductDetail({product,onBack,onOrder,t,lang}){
           </div>
         </div>
       </div>
-      <div style={{position:"fixed",maxWidth:440,width:"100%",bottom:12,padding:"0 12px",boxSizing:"border-box",left:"50%",transform:"translateX(-50%)"}}>
+      <div className="bottom-bar" style={{bottom:12,padding:"0 12px"}}>
         <div style={{background:"var(--ink)",borderRadius:18,padding:10,display:"flex",gap:10,alignItems:"center",boxShadow:"0 16px 32px rgba(12,14,11,.24)",border:"1px solid #1e211e"}}>
           <div style={{flex:1,paddingInlineStart:6,minWidth:0}}>
             <div style={{color:"#fff",fontWeight:800,fontSize:13,lineHeight:1,display:"flex",alignItems:"center",gap:6}}>{out?t("outOfStock"):t("orderNow")} {!out && <span style={{width:6,height:6,borderRadius:10,background:"#22C55E"}}/>}</div>
@@ -383,13 +383,13 @@ function OrderForm({product,onBack,onSubmit,t,lang}){
       <div style={{position:"sticky",top:0,zIndex:5,background:"rgba(255,255,255,.92)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",borderBottom:"1px solid var(--line)",padding:"10px 12px",display:"flex",alignItems:"center",gap:10}}>
         <button onClick={onBack} className="tap" style={{width:34,height:34,borderRadius:11,background:"#fff",border:"1px solid var(--line)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}><ArrowRight size={14} style={{transform: lang==="ar"?"scaleX(-1)":"none"}}/></button>
         <div style={{fontWeight:800,fontSize:13.5}}>{t("orderInfo")}</div>
-        <span className="mono" style={{marginInlineStart:"auto",fontSize:11,color:"var(--muted)",background:"var(--paper-4)",border:"1px solid var(--line)",padding:"4px 8px",borderRadius:20}}>2 / 3 • COD</span>
+        <span className="mono" style={{marginInlineStart:"auto",fontSize:11,color:"var(--muted)",background:"var(--paper-4)",border:"1px solid var(--line)",padding:"4px 8px",borderRadius:20}}>2 / 3</span>
       </div>
       <div style={{padding:"12px 14px 0",display:"flex",gap:6,alignItems:"center"}}>
         <span style={{flex:1,height:4,borderRadius:20,background:"var(--ink)"}}/><span style={{flex:1,height:4,borderRadius:20,background:"var(--ink)"}}/><span style={{flex:1,height:4,borderRadius:20,background:"#E2E8F0"}}/>
       </div>
-      <div style={{padding:"12px 14px 0"}}>
-        <div style={{background:"#fff",border:"1px solid var(--line)",borderRadius:16,padding:11,display:"flex",gap:11,alignItems:"center",boxShadow:"var(--shadow-card)"}}>
+      <div className="order-layout" style={{padding:"12px 14px 0"}}>
+        <div style={{background:"#fff",border:"1px solid var(--line)",borderRadius:16,padding:11,display:"flex",gap:11,alignItems:"center",boxShadow:"var(--shadow-card)"}} className="order-sticky">
           <div style={{width:56,height:56,borderRadius:12,background:`#fff ${cssUrl(product.img)} center/cover`,border:"1px solid var(--line)",flexShrink:0}}/>
           <div style={{flex:1,minWidth:0}}>
             <div style={{fontWeight:800,fontSize:13,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{product.name}</div>
@@ -440,12 +440,12 @@ function OrderForm({product,onBack,onSubmit,t,lang}){
           {error && <div style={{marginTop:12,background:"var(--red-soft)",border:"1px solid #FECACA",color:"var(--red)",fontSize:12.5,fontWeight:700,borderRadius:12,padding:"10px 12px",display:"flex",alignItems:"center",gap:8}}><X size={14}/>{error}</div>}
         </div>
       </div>
-      <div style={{position:"fixed",maxWidth:440,width:"100%",bottom:0,padding:12,background:"rgba(255,255,255,.98)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",borderTop:"1px solid var(--line)",boxSizing:"border-box",borderRadius:"16px 16px 0 0",left:"50%",transform:"translateX(-50%)",boxShadow:"var(--shadow-bar)"}}>
+      <div className="bottom-bar" style={{bottom:0,padding:12,background:"rgba(255,255,255,.98)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",borderTop:"1px solid var(--line)",boxSizing:"border-box",borderRadius:"16px 16px 0 0",boxShadow:"var(--shadow-bar)"}}>
         <div style={{background:"var(--paper-4)",border:"1px solid var(--line)",borderRadius:12,padding:"10px 12px",marginBottom:10}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:12.5}}><span style={{color:varMuted}}>{t("subtotal")} <span style={{color:"var(--muted-2)"}}>×{qty}</span></span><span className="num" style={{fontWeight:700}}>{riyal(subtotal,lang)}</span></div>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:12.5,marginTop:6}}><span style={{color:varMuted,display:"flex",alignItems:"center",gap:5}}><Truck size={12}/>{t("shipping")} {wilaya?`• ${wilaya.split(" - ")[1]}`:""}</span><span className="num" style={{fontWeight:700,color: shippingFee? "var(--ink)":"var(--muted-2)"}}>{shippingFee? riyal(shippingFee,lang) : wilaya? riyal(0,lang): "—"}</span></div>
           <div className="rule" style={{margin:"8px 0"}}/>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontWeight:800,fontSize:13}}>{t("total")}</span><span style={{display:"flex",alignItems:"baseline",gap:6}}><span className="num" style={{fontWeight:800,fontSize:18}}>{riyal(grandTotal, lang)}</span><span className="mono" style={{fontSize:11,color:varMuted,background:"#fff",border:"1px solid var(--line)",padding:"2px 7px",borderRadius:20}}>COD</span></span></div>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontWeight:800,fontSize:13}}>{t("total")}</span><span style={{display:"flex",alignItems:"baseline",gap:6}}><span className="num" style={{fontWeight:800,fontSize:18}}>{riyal(grandTotal, lang)}</span><span style={{fontSize:11,color:"var(--muted-2)",opacity:.7}}>—</span></span></div>
         </div>
         <button disabled={submitting} onClick={submit} className="tap" style={{width:"100%",background:submitting?"#9AA3AF":"var(--red)",color:"#fff",border:"none",borderRadius:12,padding:"14px 0",fontWeight:800,fontSize:14.5,cursor:submitting?"not-allowed":"pointer",opacity:submitting?0.7:1,boxShadow:submitting?"none":"0 10px 22px rgba(215,48,59,.24)"}}>{submitting?t("sending"):t("confirm")}</button>
       </div>
@@ -471,7 +471,7 @@ function OrderConfirmed({order,onClose,t,lang}){
             <div style={{fontWeight:800,fontSize:12.5}}>{t("orderNo")}</div>
             <div className="mono" style={{fontSize:11.5,color:"var(--ink)",direction:"ltr",textAlign:"left",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{order?.id?.toUpperCase()}</div>
           </div>
-          <span style={{background:"#fff",border:"1px solid var(--line)",padding:"6px 9px",borderRadius:20,fontSize:11,fontWeight:800}}>COD</span>
+
         </div>
         {(order.subtotal!=null || order.shippingFee!=null) && <div style={{marginTop:10,background:"#fff",border:"1px solid var(--line)",borderRadius:10,padding:"8px 10px"}}>
           <div style={{display:"flex",justifyContent:"space-between",fontSize:11.5}}><span style={{color:varMuted}}>{t("subtotal")}</span><span className="num" style={{fontWeight:700}}>{riyal(order.subtotal ?? (order.total - (order.shippingFee||0)), lang)}</span></div>
