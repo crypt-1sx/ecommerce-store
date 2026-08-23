@@ -793,27 +793,42 @@ function OrderCard({order,setStatus}){
 function ShippingEditor(){
   const [rates,setRates]=useState(()=>getShippingRates());
   const [saved,setSaved]=useState(false);
+  const [saving,setSaving]=useState(false);
+  const [err,setErr]=useState("");
   useEffect(()=>{
-    if(!isSupabaseConfigured) return;
-    supabase.from("shipping_rates").select("*").then(({data})=>{
-      if(data && data.length){ const m={}; data.forEach(r=> m[r.wilaya_code]={home:r.home,desk:r.desk}); setRates({...SHIPPING_DEFAULT, ...m}); localStorage.setItem("dz-shipping-rates", JSON.stringify({...SHIPPING_DEFAULT, ...m})); }
-    });
+    if(!isSupabaseConfigured || !supabase) return;
+    supabase.from("shipping_rates").select("*").then(({data, error})=>{
+      if(error){ console.warn(error); return; }
+      if(data && data.length){ const m={}; data.forEach(r=> m[r.wilaya_code]={home:r.home,desk:r.desk}); const merged={...SHIPPING_DEFAULT, ...m}; setRates(merged); localStorage.setItem("dz-shipping-rates", JSON.stringify(merged)); }
+    }).catch(()=>{});
   },[]);
   const save=async()=>{
+    setErr(""); setSaving(true);
     try{
       localStorage.setItem("dz-shipping-rates", JSON.stringify(rates));
-      if(isSupabaseConfigured){
-        for(const code of Object.keys(rates)){
-          await supabase.from("shipping_rates").upsert({wilaya_code:code, home:rates[code].home, desk:rates[code].desk}, {onConflict:"wilaya_code"});
-        }
+      if(isSupabaseConfigured && supabase){
+        const payload=Object.entries(rates).map(([code,r])=>({wilaya_code:code, home:Number(r.home)||0, desk:Number(r.desk)||0}));
+        const {error}=await supabase.from("shipping_rates").upsert(payload, {onConflict:"wilaya_code"});
+        if(error) throw error;
       }
-      setSaved(true); setTimeout(()=>setSaved(false),1600)
-    }catch{ alert("تعذر الحفظ") }
+      setSaved(true); setTimeout(()=>setSaved(false),1800);
+    }catch(e){
+      console.error(e);
+      setErr(e.message?.includes("does not exist")||e.message?.includes("relation") ? "جدول الشحن غير موجود — شغّل supabase.sql في SQL Editor ثم أعد المحاولة" : "تعذر الحفظ: "+(e.message||"خطأ"));
+    } finally { setSaving(false); }
   };
   const reset=async()=>{
-    localStorage.removeItem("dz-shipping-rates");
-    setRates({...SHIPPING_DEFAULT});
-    if(isSupabaseConfigured){ for(const code of Object.keys(SHIPPING_DEFAULT)){ await supabase.from("shipping_rates").upsert({wilaya_code:code, home:SHIPPING_DEFAULT[code].home, desk:SHIPPING_DEFAULT[code].desk}, {onConflict:"wilaya_code"}); } }
+    setErr(""); setSaving(true);
+    try{
+      localStorage.removeItem("dz-shipping-rates");
+      setRates({...SHIPPING_DEFAULT});
+      if(isSupabaseConfigured && supabase){
+        const payload=Object.entries(SHIPPING_DEFAULT).map(([code,r])=>({wilaya_code:code, home:r.home, desk:r.desk}));
+        const {error}=await supabase.from("shipping_rates").upsert(payload, {onConflict:"wilaya_code"});
+        if(error) throw error;
+      }
+      setSaved(true); setTimeout(()=>setSaved(false),1600);
+    }catch(e){ setErr("تعذر الإعادة: "+(e.message||"خطأ")); } finally { setSaving(false); }
   };
   return (
     <div style={{padding:"10px 14px"}}>
@@ -822,11 +837,12 @@ function ShippingEditor(){
           <div style={{fontWeight:800,fontSize:13,display:"flex",alignItems:"center",gap:6}}><Truck size={14}/> أسعار التوصيل حسب الولاية</div>
           <div style={{fontSize:11,color:varMuted,marginTop:2}}>عدّل سعر المنزل / المكتب لكل ولاية. يُحسب المجموع تلقائيا في الطلب.</div>
         </div>
-        <div style={{display:"flex",gap:6}}>
-          <button onClick={reset} style={{background:"#fff",border:"1px solid var(--line)",borderRadius:10,padding:"8px 10px",fontSize:11,fontWeight:700,cursor:"pointer"}}>إعادة الافتراضي</button>
-          <button onClick={save} style={{background: saved?"#16A34A":"var(--ink)",color:"#fff",border:"none",borderRadius:10,padding:"8px 12px",fontSize:11,fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>{saved?<><Check size={12}/> تم الحفظ</>: "حفظ"}</button>
+        <div style={{display:"flex",gap:6,alignItems:"center"}}>
+          <button onClick={reset} disabled={saving} style={{background:"#fff",border:"1px solid var(--line)",borderRadius:10,padding:"8px 10px",fontSize:11,fontWeight:700,cursor:saving?"not-allowed":"pointer",opacity:saving?.6:1}}>إعادة الافتراضي</button>
+          <button onClick={save} disabled={saving} style={{background: saved?"#16A34A":"var(--ink)",color:"#fff",border:"none",borderRadius:10,padding:"8px 12px",fontSize:11,fontWeight:800,cursor:saving?"not-allowed":"pointer",opacity:saving?.7:1,display:"flex",alignItems:"center",gap:6}}>{saving? "جاري الحفظ...": saved?<><Check size={12}/> تم الحفظ</>: "حفظ"}</button>
         </div>
       </div>
+      {err && <div style={{marginTop:8,background:"var(--red-soft)",border:"1px solid #FECACA",color:"var(--red)",fontSize:11,fontWeight:700,borderRadius:10,padding:"8px 10px"}}>{err}</div>}
       <div style={{marginTop:10,display:"grid",gap:8,maxHeight:"62vh",overflowY:"auto",paddingRight:2}} className="no-bar">
         {WILAYAS.map(w=>{
           const code=getWilayaCode(w);
