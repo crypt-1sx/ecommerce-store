@@ -232,7 +232,7 @@ export default function App(){
           <Routes>
             <Route path="/" element={<Storefront products={products} placeOrder={placeOrder} lang={lang} setLang={setLang} t={t} />} />
             <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin" element={<ProtectedRoute><Dashboard products={products} saveProducts={saveProducts} orders={orders} commit={commit} /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute><Dashboard products={products} saveProducts={saveProducts} orders={orders} commit={commit} setOrders={setOrders} setProducts={setProducts} reload={load} /></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
@@ -586,7 +586,7 @@ function OrderConfirmed({order,onClose,t,lang}){
   );
 }
 
-function Dashboard({products,saveProducts,orders,commit}){
+function Dashboard({products,saveProducts,orders,commit,setOrders,setProducts,reload}){
   const navigate=useNavigate();
   const [tab,setTab]=useState("orders");
   const [orderFilter,setOrderFilter]=useState("pending");
