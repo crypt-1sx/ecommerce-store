@@ -476,7 +476,7 @@ function OrderForm({product,onBack,onSubmit,t,lang}){
   const inputStyle={width:"100%",padding:"12px 13px",borderRadius:12,border:"1px solid var(--line)",background:"#fff",fontSize:13.5,boxSizing:"border-box",outline:"none"};
   const labelStyle={fontSize:11.5,fontWeight:700,color:"#475569",letterSpacing:.2,marginBottom:6,display:"block"};
   return (
-    <div className="fade-in" style={{paddingBottom:144,background:"#fff"}}>
+    <div className="fade-in" style={{paddingBottom:200,background:"#fff"}}>
       <div style={{position:"sticky",top:0,zIndex:5,background:"rgba(255,255,255,.92)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",borderBottom:"1px solid var(--line)",padding:"10px 12px",display:"flex",alignItems:"center",gap:10}}>
         <button onClick={onBack} className="tap" style={{width:34,height:34,borderRadius:11,background:"#fff",border:"1px solid var(--line)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}><ArrowRight size={14} style={{transform: lang==="ar"?"scaleX(-1)":"none"}}/></button>
         <div style={{fontWeight:800,fontSize:13.5}}>{t("orderInfo")}</div>
