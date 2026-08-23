@@ -145,6 +145,9 @@ export default function App(){
       }).on("postgres_changes",{event:"*",schema:"public",table:"orders"}, async()=>{
         try{ const {data}=await supabase.from("orders").select("*").order("created_at",{ascending:false});
         if(data) setOrders(data.map(o=>({id:o.id, productId:o.product_id, productName:o.product_name, price:o.price, qty:o.qty, subtotal:o.subtotal, shippingFee:o.shipping_fee, total:o.total, firstName:o.first_name, lastName:o.last_name, phone:o.phone, wilaya:o.wilaya, commune:o.commune, delivery:o.delivery, status:o.status, createdAt:o.created_at}))); }catch{}
+      }).on("postgres_changes",{event:"*",schema:"public",table:"shipping_rates"}, async()=>{
+        try{ const {data}=await supabase.from("shipping_rates").select("*");
+        if(data && data.length){ const m={}; data.forEach(r=> m[r.wilaya_code]={home:r.home,desk:r.desk}); localStorage.setItem("dz-shipping-rates", JSON.stringify({...SHIPPING_DEFAULT, ...m})); window.dispatchEvent(new Event("storage")); } }catch{}
       }).subscribe();
       return ()=>{ try{ supabase.removeChannel(ch); }catch{} };
     }catch(e){ console.warn("realtime failed", e); }
