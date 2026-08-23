@@ -1,10 +1,15 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import { Plus, Minus, X, Check, Trash2, Package, ClipboardList, ArrowRight, Store, Truck, Building2, Lock, LogOut, ArrowUpLeft, ShieldCheck, Sparkles, Pencil, Upload, Image as ImageIcon, Clock, Shield, Star, Info } from "lucide-react";
+import { Plus, Minus, X, Check, Trash2, Package, ClipboardList, ArrowRight, Store, Truck, Building2, Lock, LogOut, ArrowUpLeft, ShieldCheck, Sparkles, Pencil, Upload, Image as ImageIcon, Clock, Shield, Star, Info, MapPin } from "lucide-react";
+import { COMMUNES } from "./communes.js";
 
 const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || "admin123";
 const IS_DEFAULT_PW = ADMIN_PASSWORD === "admin123";
 const WILAYAS = ["01 - أدرار","02 - الشلف","03 - الأغواط","04 - أم البواقي","05 - باتنة","06 - بجاية","07 - بسكرة","08 - بشار","09 - البليدة","10 - البويرة","11 - تمنراست","12 - تبسة","13 - تلمسان","14 - تيارت","15 - تيزي وزو","16 - الجزائر","17 - الجلفة","18 - جيجل","19 - سطيف","20 - سعيدة","21 - سكيكدة","22 - سيدي بلعباس","23 - عنابة","24 - قالمة","25 - قسنطينة","26 - المدية","27 - مستغانم","28 - المسيلة","29 - معسكر","30 - ورقلة","31 - وهران","32 - البيض","33 - إليزي","34 - برج بوعريريج","35 - بومرداس","36 - الطارف","37 - تندوف","38 - تيسمسيلت","39 - الوادي","40 - خنشلة","41 - سوق أهراس","42 - تيبازة","43 - ميلة","44 - عين الدفلى","45 - النعامة","46 - عين تموشنت","47 - غرداية","48 - غليزان","49 - تيميمون","50 - برج باجي مختار","51 - أولاد جلال","52 - بني عباس","53 - عين صالح","54 - عين قزام","55 - تقرت","56 - جانت","57 - المغير","58 - المنيعة"];
+const SHIPPING_DEFAULT = {"01":{home:1300,desk:950},"02":{home:850,desk:500},"03":{home:950,desk:600},"04":{home:850,desk:600},"05":{home:850,desk:600},"06":{home:900,desk:500},"07":{home:950,desk:600},"08":{home:1000,desk:700},"09":{home:700,desk:450},"10":{home:800,desk:500},"11":{home:1500,desk:900},"12":{home:1000,desk:550},"13":{home:900,desk:550},"14":{home:900,desk:550},"15":{home:800,desk:500},"16":{home:500,desk:250},"17":{home:950,desk:550},"18":{home:900,desk:500},"19":{home:900,desk:500},"20":{home:900,desk:500},"21":{home:900,desk:500},"22":{home:900,desk:500},"23":{home:850,desk:500},"24":{home:900,desk:500},"25":{home:800,desk:500},"26":{home:800,desk:500},"27":{home:900,desk:500},"28":{home:850,desk:550},"29":{home:900,desk:500},"30":{home:950,desk:650},"31":{home:800,desk:500},"32":{home:1000,desk:650},"33":{home:1500,desk:1000},"34":{home:800,desk:500},"35":{home:700,desk:450},"36":{home:850,desk:500},"37":{home:1500,desk:1000},"38":{home:950,desk:650},"39":{home:950,desk:650},"40":{home:900,desk:500},"41":{home:700,desk:450},"42":{home:700,desk:500},"43":{home:800,desk:500},"44":{home:800,desk:500},"45":{home:1000,desk:650},"46":{home:900,desk:500},"47":{home:950,desk:600},"48":{home:900,desk:500},"49":{home:1300,desk:850},"50":{home:1500,desk:1000},"51":{home:950,desk:500},"52":{home:1000,desk:650},"53":{home:1500,desk:900},"54":{home:1500,desk:900},"55":{home:950,desk:650},"56":{home:1500,desk:1000},"57":{home:950,desk:650},"58":{home:1000,desk:650}};
+function getWilayaCode(w){ return String(w||"").slice(0,2); }
+function getShippingRates(){ try{ const o=JSON.parse(localStorage.getItem("dz-shipping-rates")||"null"); return o && typeof o==="object" ? {...SHIPPING_DEFAULT, ...o} : SHIPPING_DEFAULT }catch{ return SHIPPING_DEFAULT } }
+function getShippingFee(wilaya, delivery){ const code=getWilayaCode(wilaya); const r=getShippingRates()[code]; if(!r) return 0; return delivery==="منزل"? r.home : r.desk }
 const SEED_PRODUCTS = [
   { id: "p1", name: "سماعات بلوتوث", price: 3500, quantity: 25, desc: "صوت نقي مع عزل ضجيج، بطارية 28 ساعة، شحن Type-C.", img: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=700&q=80&auto=format" },
   { id: "p2", name: "ساعة ذكية", price: 6900, quantity: 12, desc: "شاشة AMOLED، تتبع نوم ورياضة، مقاومة 5ATM.", img: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=700&q=80&auto=format" },
@@ -13,16 +18,16 @@ const SEED_PRODUCTS = [
 const T = {
   ar: {
     currency:"دج", view:"عرض →", empty:"لا توجد منتجات حاليا", detail:"تفاصيل المنتج", available:"متوفر", orderNow:"اطلب الآن", confirmPhone:"تأكيد هاتفي خلال ساعات", continueOrder:"متابعة الطلب",
-    orderInfo:"معلومات الطلب", firstName:"الاسم", lastName:"اللقب", phone:"رقم الهاتف", wilaya:"الولاية", choose:"اختر", delivery:"التوصيل", office:"مكتب", home:"منزل", total:"المجموع النهائي", confirm:"تأكيد الطلب", sending:"جاري الإرسال...", human:`تأكيد بشري`, result:"النتيجة",
-    errName:"أدخل الاسم و اللقب", errShort:"الاسم قصير جدا", errPhone:"رقم الهاتف غير صحيح", errWilaya:"اختر الولاية", errBot:"تم كشف نشاط مشبوه", errWait:(s)=>`مهلا! انتظر ${s} ثانية قبل طلب جديد`, errDup:"لقد طلبت هذا المنتج منذ قليل — انتظر 5 دقائق",
+    orderInfo:"معلومات الطلب", firstName:"الاسم", lastName:"اللقب", phone:"رقم الهاتف", wilaya:"الولاية", commune:"البلدية", choose:"اختر", delivery:"التوصيل", office:"مكتب", home:"منزل", subtotal:"المنتج", shipping:"التوصيل", total:"المجموع النهائي", confirm:"تأكيد الطلب", sending:"جاري الإرسال...", human:`تأكيد بشري`, result:"النتيجة",
+    errName:"أدخل الاسم و اللقب", errShort:"الاسم قصير جدا", errPhone:"رقم الهاتف غير صحيح", errWilaya:"اختر الولاية", errCommune:"اختر البلدية", errBot:"تم كشف نشاط مشبوه", errWait:(s)=>`مهلا! انتظر ${s} ثانية قبل طلب جديد`, errDup:"لقد طلبت هذا المنتج منذ قليل — انتظر 5 دقائق",
     spamWait:(s)=>`مهلا! انتظر ${s} ثانية`, successTitle:"تم استلام طلبك", successMsg:"شكرا لثقتك. سيتصل بك فريقنا خلال ساعات لتأكيد التوصيل.", saved:"رقم الطلب محفوظ", continueShop:"متابعة التسوق", banner:"DZ Store",
     loading:"جاري التحميل...", outOfStock:"نفد المخزون", stockLeft:(n)=>`متوفر: ${n}`, orderNo:"رقم الطلب",
     errStock:(n)=> n>0?`الكمية المتوفرة: ${n} فقط`:"نفد المخزون", errGone:"هذا المنتج لم يعد متوفرا", errStorage:"تعذر حفظ الطلب — مساحة التخزين ممتلئة"
   },
   en: {
     currency:"DZD", view:"View →", empty:"No products yet", detail:"Product Details", available:"In stock", orderNow:"Order Now", confirmPhone:"Phone confirmation within hours", continueOrder:"Continue",
-    orderInfo:"Order Info", firstName:"First Name", lastName:"Last Name", phone:"Phone", wilaya:"Province", choose:"Select", delivery:"Delivery", office:"Office", home:"Home", total:"Total", confirm:"Confirm Order", sending:"Sending...", human:"Human check", result:"Result",
-    errName:"Enter first & last name", errShort:"Name too short", errPhone:"Invalid phone", errWilaya:"Select province", errBot:"Bot detected", errWait:(s)=>`Wait ${s}s before next order`, errDup:"You ordered this recently — wait 5 min",
+    orderInfo:"Order Info", firstName:"First Name", lastName:"Last Name", phone:"Phone", wilaya:"Province", commune:"Commune", choose:"Select", delivery:"Delivery", office:"Office", home:"Home", subtotal:"Subtotal", shipping:"Shipping", total:"Total", confirm:"Confirm Order", sending:"Sending...", human:"Human check", result:"Result",
+    errName:"Enter first & last name", errShort:"Name too short", errPhone:"Invalid phone", errWilaya:"Select province", errCommune:"Select commune", errBot:"Bot detected", errWait:(s)=>`Wait ${s}s before next order`, errDup:"You ordered this recently — wait 5 min",
     spamWait:(s)=>`Wait ${s}s`, successTitle:"Order Received", successMsg:"Thanks! We'll call you within hours to confirm. Cash on delivery.", saved:"Order saved", continueShop:"Continue Shopping", banner:"DZ Store",
     loading:"Loading...", outOfStock:"Out of stock", stockLeft:(n)=>`${n} in stock`, orderNo:"Order No.",
     errStock:(n)=> n>0?`Only ${n} left in stock`:"Out of stock", errGone:"This product is no longer available", errStorage:"Could not save the order — storage is full"
@@ -331,6 +336,7 @@ function OrderForm({product,onBack,onSubmit,t,lang}){
   const [lastName,setLastName]=useState("");
   const [phone,setPhone]=useState("");
   const [wilaya,setWilaya]=useState("");
+  const [commune,setCommune]=useState("");
   const [delivery,setDelivery]=useState("مكتب");
   const [qty,setQty]=useState(1);
   const [hp,setHp]=useState("");
@@ -341,6 +347,12 @@ function OrderForm({product,onBack,onSubmit,t,lang}){
   const stock=Number(product.quantity)||0;
   const maxQty=Math.max(1,Math.min(10,stock));
   useEffect(()=>{ setQty(q=>Math.min(q,maxQty)) },[maxQty]);
+  const wilayaCode=getWilayaCode(wilaya);
+  const communes=wilayaCode ? (COMMUNES[wilayaCode]||[]) : [];
+  useEffect(()=>{ setCommune("") },[wilaya]);
+  const subtotal=product.price*qty;
+  const shippingFee=wilaya?getShippingFee(wilaya, delivery):0;
+  const grandTotal=subtotal+shippingFee;
   const submit=async()=>{
     if(submitting) return;
     if(hp.trim()!=="") return setError(t("errBot"));
@@ -349,6 +361,7 @@ function OrderForm({product,onBack,onSubmit,t,lang}){
     if(fn.length<2 || ln.length<2) return setError(t("errShort"));
     if(!/^0[5-7][0-9]{8}$/.test(phone.trim())) return setError(t("errPhone"));
     if(!wilaya) return setError(t("errWilaya"));
+    if(!commune) return setError(t("errCommune"));
     if(Number(capInput)!==cap.ans) return setError(`${t("human")}: ${cap.a} + ${cap.b} = ?`);
     if(qty>stock) return setError(t("errStock",stock));
     const rl=canPlaceOrder();
@@ -356,7 +369,7 @@ function OrderForm({product,onBack,onSubmit,t,lang}){
     if(isDuplicateOrder(phone.trim(), product.id)) return setError(t("errDup"));
     setError(""); setSubmitting(true);
     try{
-      await onSubmit({productId:product.id,productName:product.name,price:product.price,qty,total:product.price*qty,firstName:fn,lastName:ln,phone:phone.trim(),wilaya,delivery});
+      await onSubmit({productId:product.id,productName:product.name,price:product.price,qty,subtotal,shippingFee,total:grandTotal,firstName:fn,lastName:ln,phone:phone.trim(),wilaya,commune,delivery});
       recordOrder();
     }catch(e){
       setError(e.message==="GONE"?t("errGone") : e.message==="STOCK"?t("errStock",e.left) : t("errStorage"));
@@ -366,7 +379,7 @@ function OrderForm({product,onBack,onSubmit,t,lang}){
   const inputStyle={width:"100%",padding:"12px 13px",borderRadius:12,border:"1px solid var(--line)",background:"#fff",fontSize:13.5,boxSizing:"border-box",outline:"none"};
   const labelStyle={fontSize:11.5,fontWeight:700,color:"#475569",letterSpacing:.2,marginBottom:6,display:"block"};
   return (
-    <div className="fade-in" style={{paddingBottom:124,background:"#fff"}}>
+    <div className="fade-in" style={{paddingBottom:144,background:"#fff"}}>
       <div style={{position:"sticky",top:0,zIndex:5,background:"rgba(255,255,255,.92)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",borderBottom:"1px solid var(--line)",padding:"10px 12px",display:"flex",alignItems:"center",gap:10}}>
         <button onClick={onBack} className="tap" style={{width:34,height:34,borderRadius:11,background:"#fff",border:"1px solid var(--line)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}><ArrowRight size={14} style={{transform: lang==="ar"?"scaleX(-1)":"none"}}/></button>
         <div style={{fontWeight:800,fontSize:13.5}}>{t("orderInfo")}</div>
@@ -394,7 +407,11 @@ function OrderForm({product,onBack,onSubmit,t,lang}){
             <div><label style={labelStyle}>{t("lastName")}</label><input className="field" style={inputStyle} value={lastName} onChange={e=>setLastName(e.target.value)} placeholder={lang==="ar"?"بن علي":"Benali"}/></div>
           </div>
           <div style={{marginTop:10}}><label style={labelStyle}>{t("phone")} <span style={{color:"var(--muted-2)",fontWeight:600}}>— 0 5/6/7 • 10 أرقام</span></label><input className="field" style={{...inputStyle,direction:"ltr",textAlign:"left"}} value={phone} onChange={e=>setPhone(e.target.value)} placeholder="07… / 05… / 06…" type="tel"/></div>
-          <div style={{marginTop:10}}><label style={labelStyle}>{t("wilaya")}</label><select className="field" style={{...inputStyle}} value={wilaya} onChange={e=>setWilaya(e.target.value)}><option value="">{t("choose")}</option>{WILAYAS.map(w=><option key={w} value={w}>{w}</option>)}</select></div>
+          <div style={{marginTop:10,display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+            <div><label style={labelStyle}><MapPin size={11} style={{display:"inline",marginInlineEnd:4}}/>{t("wilaya")}</label><select className="field" style={{...inputStyle}} value={wilaya} onChange={e=>setWilaya(e.target.value)}><option value="">{t("choose")}</option>{WILAYAS.map(w=><option key={w} value={w}>{w}</option>)}</select></div>
+            <div><label style={labelStyle}>{t("commune")}</label><select className="field" style={{...inputStyle, opacity: communes.length?1:.6}} value={commune} onChange={e=>setCommune(e.target.value)} disabled={!wilaya}><option value="">{wilaya? (communes.length? t("choose") : "—") : t("choose")}</option>{communes.map(c=><option key={c} value={c}>{c}</option>)}</select></div>
+          </div>
+          {wilaya && <div style={{marginTop:8,background:"#fff",border:"1px solid var(--line)",borderRadius:10,padding:"8px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}><span style={{fontSize:11,color:"var(--muted)",display:"flex",alignItems:"center",gap:6}}><Truck size={12}/>{delivery==="منزل"?t("home"):t("office")} • {wilaya.split(" - ")[1]||wilaya}</span><span className="num mono" style={{fontSize:12,fontWeight:800,color:"var(--ink)"}}>{riyal(getShippingFee(wilaya, delivery),lang)}</span></div>}
           <div style={{marginTop:12}}><label style={labelStyle}>{t("delivery")}</label>
             <div style={{display:"flex",gap:8}}>
               <button onClick={()=>setDelivery("مكتب")} className="tap" style={{flex:1,padding:11,borderRadius:12,border:delivery==="مكتب"?"1.5px solid var(--red)":"1px solid var(--line)",background:delivery==="مكتب"?"var(--red-soft)":"#fff",display:"flex",alignItems:"center",gap:10,cursor:"pointer",textAlign: lang==="ar"?"right":"left"}}>
@@ -423,10 +440,12 @@ function OrderForm({product,onBack,onSubmit,t,lang}){
           {error && <div style={{marginTop:12,background:"var(--red-soft)",border:"1px solid #FECACA",color:"var(--red)",fontSize:12.5,fontWeight:700,borderRadius:12,padding:"10px 12px",display:"flex",alignItems:"center",gap:8}}><X size={14}/>{error}</div>}
         </div>
       </div>
-      <div style={{position:"fixed",maxWidth:440,width:"100%",bottom:0,padding:12,background:"rgba(255,255,255,.96)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",borderTop:"1px solid var(--line)",boxSizing:"border-box",borderRadius:"16px 16px 0 0",left:"50%",transform:"translateX(-50%)"}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10,padding:"0 2px"}}>
-          <span style={{fontSize:12.5,color:varMuted,fontWeight:600}}>{t("total")}</span>
-          <span style={{display:"flex",alignItems:"baseline",gap:6}}><span className="num" style={{fontWeight:800,fontSize:18}}>{riyal(product.price*qty, lang)}</span><span className="mono" style={{fontSize:11,color:varMuted,background:"var(--paper-4)",border:"1px solid var(--line)",padding:"2px 7px",borderRadius:20}}>COD</span></span>
+      <div style={{position:"fixed",maxWidth:440,width:"100%",bottom:0,padding:12,background:"rgba(255,255,255,.98)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",borderTop:"1px solid var(--line)",boxSizing:"border-box",borderRadius:"16px 16px 0 0",left:"50%",transform:"translateX(-50%)",boxShadow:"var(--shadow-bar)"}}>
+        <div style={{background:"var(--paper-4)",border:"1px solid var(--line)",borderRadius:12,padding:"10px 12px",marginBottom:10}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:12.5}}><span style={{color:varMuted}}>{t("subtotal")} <span style={{color:"var(--muted-2)"}}>×{qty}</span></span><span className="num" style={{fontWeight:700}}>{riyal(subtotal,lang)}</span></div>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:12.5,marginTop:6}}><span style={{color:varMuted,display:"flex",alignItems:"center",gap:5}}><Truck size={12}/>{t("shipping")} {wilaya?`• ${wilaya.split(" - ")[1]}`:""}</span><span className="num" style={{fontWeight:700,color: shippingFee? "var(--ink)":"var(--muted-2)"}}>{shippingFee? riyal(shippingFee,lang) : wilaya? riyal(0,lang): "—"}</span></div>
+          <div className="rule" style={{margin:"8px 0"}}/>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontWeight:800,fontSize:13}}>{t("total")}</span><span style={{display:"flex",alignItems:"baseline",gap:6}}><span className="num" style={{fontWeight:800,fontSize:18}}>{riyal(grandTotal, lang)}</span><span className="mono" style={{fontSize:11,color:varMuted,background:"#fff",border:"1px solid var(--line)",padding:"2px 7px",borderRadius:20}}>COD</span></span></div>
         </div>
         <button disabled={submitting} onClick={submit} className="tap" style={{width:"100%",background:submitting?"#9AA3AF":"var(--red)",color:"#fff",border:"none",borderRadius:12,padding:"14px 0",fontWeight:800,fontSize:14.5,cursor:submitting?"not-allowed":"pointer",opacity:submitting?0.7:1,boxShadow:submitting?"none":"0 10px 22px rgba(215,48,59,.24)"}}>{submitting?t("sending"):t("confirm")}</button>
       </div>
@@ -445,13 +464,22 @@ function OrderConfirmed({order,onClose,t,lang}){
       </div>
       <h2 style={{margin:"18px 0 6px",fontSize:21,fontWeight:800,letterSpacing:-.4}}>{t("successTitle")}</h2>
       <p style={{margin:0,color:"var(--muted)",fontSize:13,lineHeight:1.9,maxWidth:300}}>{t("successMsg")}</p>
-      <div style={{marginTop:14,background:"var(--paper-4)",border:"1px solid var(--line)",borderRadius:14,padding:12,width:"100%",maxWidth:340,display:"flex",alignItems:"center",gap:10,textAlign: lang==="ar"?"right":"left"}}>
-        <div style={{width:34,height:34,borderRadius:10,background:"#fff",border:"1px solid var(--line)",display:"flex",alignItems:"center",justifyContent:"center"}}><ClipboardList size={14} color="var(--ink)"/></div>
-        <div style={{flex:1,minWidth:0}}>
-          <div style={{fontWeight:800,fontSize:12.5}}>{t("orderNo")}</div>
-          <div className="mono" style={{fontSize:11.5,color:"var(--ink)",direction:"ltr",textAlign:"left",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{order?.id?.toUpperCase()}</div>
+      <div style={{marginTop:14,background:"var(--paper-4)",border:"1px solid var(--line)",borderRadius:14,padding:12,width:"100%",maxWidth:340,textAlign: lang==="ar"?"right":"left"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <div style={{width:34,height:34,borderRadius:10,background:"#fff",border:"1px solid var(--line)",display:"flex",alignItems:"center",justifyContent:"center"}}><ClipboardList size={14} color="var(--ink)"/></div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontWeight:800,fontSize:12.5}}>{t("orderNo")}</div>
+            <div className="mono" style={{fontSize:11.5,color:"var(--ink)",direction:"ltr",textAlign:"left",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{order?.id?.toUpperCase()}</div>
+          </div>
+          <span style={{background:"#fff",border:"1px solid var(--line)",padding:"6px 9px",borderRadius:20,fontSize:11,fontWeight:800}}>COD</span>
         </div>
-        <span style={{background:"#fff",border:"1px solid var(--line)",padding:"6px 9px",borderRadius:20,fontSize:11,fontWeight:800}}>COD</span>
+        {(order.subtotal!=null || order.shippingFee!=null) && <div style={{marginTop:10,background:"#fff",border:"1px solid var(--line)",borderRadius:10,padding:"8px 10px"}}>
+          <div style={{display:"flex",justifyContent:"space-between",fontSize:11.5}}><span style={{color:varMuted}}>{t("subtotal")}</span><span className="num" style={{fontWeight:700}}>{riyal(order.subtotal ?? (order.total - (order.shippingFee||0)), lang)}</span></div>
+          <div style={{display:"flex",justifyContent:"space-between",fontSize:11.5,marginTop:4}}><span style={{color:varMuted}}>{t("shipping")}</span><span className="num" style={{fontWeight:700}}>{riyal(order.shippingFee||0, lang)}</span></div>
+          <div style={{height:1,background:"var(--line)",margin:"6px 0"}}/>
+          <div style={{display:"flex",justifyContent:"space-between",fontSize:12, fontWeight:800}}><span>{t("total")}</span><span className="num">{riyal(order.total, lang)}</span></div>
+          {order.wilaya && <div className="mono" style={{marginTop:6,color:varMuted,fontSize:11,display:"flex",gap:6,flexWrap:"wrap"}}><span style={{background:"var(--paper-4)",border:"1px solid var(--line)",padding:"3px 7px",borderRadius:20}}>{order.wilaya}</span>{order.commune && <span style={{background:"var(--paper-4)",border:"1px solid var(--line)",padding:"3px 7px",borderRadius:20}}>{order.commune}</span>}<span style={{background:"var(--paper-4)",border:"1px solid var(--line)",padding:"3px 7px",borderRadius:20}}>{order.delivery}</span></div>}
+        </div>}
       </div>
       <div style={{marginTop:10,display:"flex",alignItems:"center",gap:6,color:"var(--muted)",fontSize:11,background:"#fff",border:"1px solid var(--line)",borderRadius:20,padding:"6px 10px"}}>
         <Clock size={12}/> {lang==="ar"?"سيتصل بك فريقنا خلال ساعات لتأكيد التوصيل":"Our team will call you within hours"}
@@ -521,6 +549,7 @@ function Dashboard({products,saveProducts,orders,commit}){
         <div style={{background:"#F1F5F9",border:"1px solid var(--line)",padding:4,borderRadius:14,display:"flex",gap:4}}>
           <TabBtn active={tab==="orders"} onClick={()=>setTab("orders")} icon={<ClipboardList size={13}/>} label={`الطلبات · ${orders.length}`} />
           <TabBtn active={tab==="products"} onClick={()=>setTab("products")} icon={<Package size={13}/>} label={`المنتجات · ${products.length}`} />
+          <TabBtn active={tab==="shipping"} onClick={()=>setTab("shipping")} icon={<Truck size={13}/>} label={`الشحن`} />
         </div>
       </div>
       {tab==="orders" ? (
@@ -541,6 +570,8 @@ function Dashboard({products,saveProducts,orders,commit}){
             {filteredOrders.map(o=><OrderCard key={o.id} order={o} setStatus={setStatus} />)}
           </div>
         </div>
+      ): tab==="shipping" ? (
+        <ShippingEditor />
       ):(
         <div style={{padding:"10px 14px"}}>
           <button onClick={()=>setShowAdd(true)} style={{width:"100%",background:"#fff",border:"1.5px dashed var(--red)",color:"var(--red)",fontWeight:800,fontSize:13,borderRadius:14,padding:"12px 0",display:"flex",alignItems:"center",justifyContent:"center",gap:7,cursor:"pointer"}}><Plus size={15}/> إضافة منتج جديد</button>
@@ -597,8 +628,12 @@ function OrderCard({order,setStatus}){
           <div style={{fontSize:12.5,fontWeight:700}}>{order.productName} <span style={{color:varMuted,fontWeight:600}}>× {order.qty}</span></div>
           <b style={{color:"var(--red)",fontSize:12.5}}>{riyal(order.total)}</b>
         </div>
+        {(order.shippingFee!=null) && <div style={{marginTop:6,background:"#fff",border:"1px solid var(--line)",borderRadius:8,padding:"6px 8px",display:"flex",justifyContent:"space-between",fontSize:11}}>
+          <span style={{color:varMuted}}>شحن • {order.delivery}</span><span className="mono" style={{fontWeight:700}}>{riyal(order.shippingFee, "ar")} {order.subtotal!=null && <span style={{color:varMuted, fontWeight:400}}>— سلعة {riyal(order.subtotal,"ar")}</span>}</span>
+        </div>}
         <div className="mono" style={{marginTop:6,color:varMuted,fontSize:11,display:"flex",gap:6,flexWrap:"wrap"}}>
           <span style={{background:"#fff",border:"1px solid var(--line)",padding:"3px 7px",borderRadius:20}}>{order.wilaya}</span>
+          {order.commune && <span style={{background:"#fff",border:"1px solid var(--line)",padding:"3px 7px",borderRadius:20}}>{order.commune}</span>}
           <span style={{background:"#fff",border:"1px solid var(--line)",padding:"3px 7px",borderRadius:20}}>{order.delivery==="مكتب"?"مكتب":"منزل"}</span>
         </div>
       </div>
@@ -630,6 +665,47 @@ function OrderCard({order,setStatus}){
   );
 }
 
+function ShippingEditor(){
+  const [rates,setRates]=useState(()=>getShippingRates());
+  const [saved,setSaved]=useState(false);
+  const save=()=>{
+    try{ localStorage.setItem("dz-shipping-rates", JSON.stringify(rates)); setSaved(true); setTimeout(()=>setSaved(false),1600) }catch{ alert("تعذر الحفظ") }
+  };
+  const reset=()=>{ localStorage.removeItem("dz-shipping-rates"); setRates({...SHIPPING_DEFAULT}); };
+  return (
+    <div style={{padding:"10px 14px"}}>
+      <div style={{background:"var(--paper-4)",border:"1px solid var(--line)",borderRadius:14,padding:12,display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}>
+        <div>
+          <div style={{fontWeight:800,fontSize:13,display:"flex",alignItems:"center",gap:6}}><Truck size={14}/> أسعار التوصيل حسب الولاية</div>
+          <div style={{fontSize:11,color:varMuted,marginTop:2}}>عدّل سعر المنزل / المكتب لكل ولاية. يُحسب المجموع تلقائيا في الطلب.</div>
+        </div>
+        <div style={{display:"flex",gap:6}}>
+          <button onClick={reset} style={{background:"#fff",border:"1px solid var(--line)",borderRadius:10,padding:"8px 10px",fontSize:11,fontWeight:700,cursor:"pointer"}}>إعادة الافتراضي</button>
+          <button onClick={save} style={{background: saved?"#16A34A":"var(--ink)",color:"#fff",border:"none",borderRadius:10,padding:"8px 12px",fontSize:11,fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>{saved?<><Check size={12}/> تم الحفظ</>: "حفظ"}</button>
+        </div>
+      </div>
+      <div style={{marginTop:10,display:"grid",gap:8,maxHeight:"62vh",overflowY:"auto",paddingRight:2}} className="no-bar">
+        {WILAYAS.map(w=>{
+          const code=getWilayaCode(w);
+          const r=rates[code]||{home:0,desk:0};
+          return (
+            <div key={code} style={{background:"#fff",border:"1px solid var(--line)",borderRadius:12,padding:10,display:"flex",alignItems:"center",gap:8}}>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontWeight:700,fontSize:12.5,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{w}</div>
+                <div className="mono" style={{fontSize:10,color:varMuted}}>{COMMUNES[code]?.length||0} بلدية</div>
+              </div>
+              <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                <label style={{fontSize:10,fontWeight:700,color:"var(--muted)",display:"flex",alignItems:"center",gap:4}}><Building2 size={11}/>مكتب<input type="number" value={r.desk} onChange={e=>setRates({...rates,[code]:{...r,desk: Number(e.target.value)||0}})} style={{width:84,padding:"7px 8px",borderRadius:8,border:"1px solid var(--line)",background:"var(--paper-4)",fontSize:12}} /></label>
+                <label style={{fontSize:10,fontWeight:700,color:"var(--muted)",display:"flex",alignItems:"center",gap:4}}><Truck size={11}/>منزل<input type="number" value={r.home} onChange={e=>setRates({...rates,[code]:{...r,home: Number(e.target.value)||0}})} style={{width:84,padding:"7px 8px",borderRadius:8,border:"1px solid var(--line)",background:"#fff",fontSize:12}} /></label>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      <div style={{marginTop:10,background:"#FFF7ED",border:"1px solid #FDBA74",color:"#9A3412",fontSize:11,borderRadius:10,padding:"8px 10px"}}>نصيحة: اجعل المكتب أقل بـ 150-250 دج من المنزل — الزبون يختار المكتب ويقل الغياب.</div>
+    </div>
+  );
+}
 function fieldStyle(){ return {width:"100%",padding:"11px 13px",borderRadius:12,border:"1px solid var(--line)",background:"var(--paper-4)",fontSize:13.5,boxSizing:"border-box"}; }
 
 function AddProductModal({onClose,onAdd}){
