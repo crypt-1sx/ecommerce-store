@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import { Plus, Minus, X, Check, Trash2, Package, ClipboardList, ArrowRight, Store, Truck, Building2, Lock, LogOut, ArrowUpLeft, ShieldCheck, Sparkles, Pencil, Upload, Image as ImageIcon, Clock, Shield, Star, Info, MapPin } from "lucide-react";
+import { Plus, Minus, X, Check, Trash2, Package, ClipboardList, ArrowRight, Store, Truck, Building2, Lock, LogOut, ArrowUpLeft, ShieldCheck, Sparkles, Pencil, Upload, Image as ImageIcon, Clock, Shield, Star, Info, MapPin, Settings, Languages, KeyRound } from "lucide-react";
 import { COMMUNES } from "./communes.js";
 import { supabase, isSupabaseConfigured } from "./supabase.js";
 
 const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || "admin123";
-const IS_DEFAULT_PW = ADMIN_PASSWORD === "admin123";
+function getAdminPassword(){ try{ return localStorage.getItem("dz-admin-pw") || ADMIN_PASSWORD; }catch{ return ADMIN_PASSWORD; } }
+function isDefaultPassword(){ return getAdminPassword() === "admin123"; }
 const WILAYAS = ["01 - أدرار","02 - الشلف","03 - الأغواط","04 - أم البواقي","05 - باتنة","06 - بجاية","07 - بسكرة","08 - بشار","09 - البليدة","10 - البويرة","11 - تمنراست","12 - تبسة","13 - تلمسان","14 - تيارت","15 - تيزي وزو","16 - الجزائر","17 - الجلفة","18 - جيجل","19 - سطيف","20 - سعيدة","21 - سكيكدة","22 - سيدي بلعباس","23 - عنابة","24 - قالمة","25 - قسنطينة","26 - المدية","27 - مستغانم","28 - المسيلة","29 - معسكر","30 - ورقلة","31 - وهران","32 - البيض","33 - إليزي","34 - برج بوعريريج","35 - بومرداس","36 - الطارف","37 - تندوف","38 - تيسمسيلت","39 - الوادي","40 - خنشلة","41 - سوق أهراس","42 - تيبازة","43 - ميلة","44 - عين الدفلى","45 - النعامة","46 - عين تموشنت","47 - غرداية","48 - غليزان","49 - تيميمون","50 - برج باجي مختار","51 - أولاد جلال","52 - بني عباس","53 - عين صالح","54 - عين قزام","55 - تقرت","56 - جانت","57 - المغير","58 - المنيعة"];
 const SHIPPING_DEFAULT = {"01":{home:1300,desk:950},"02":{home:850,desk:500},"03":{home:950,desk:600},"04":{home:850,desk:600},"05":{home:850,desk:600},"06":{home:900,desk:500},"07":{home:950,desk:600},"08":{home:1000,desk:700},"09":{home:700,desk:450},"10":{home:800,desk:500},"11":{home:1500,desk:900},"12":{home:1000,desk:550},"13":{home:900,desk:550},"14":{home:900,desk:550},"15":{home:800,desk:500},"16":{home:500,desk:250},"17":{home:950,desk:550},"18":{home:900,desk:500},"19":{home:900,desk:500},"20":{home:900,desk:500},"21":{home:900,desk:500},"22":{home:900,desk:500},"23":{home:850,desk:500},"24":{home:900,desk:500},"25":{home:800,desk:500},"26":{home:800,desk:500},"27":{home:900,desk:500},"28":{home:850,desk:550},"29":{home:900,desk:500},"30":{home:950,desk:650},"31":{home:800,desk:500},"32":{home:1000,desk:650},"33":{home:1500,desk:1000},"34":{home:800,desk:500},"35":{home:700,desk:450},"36":{home:850,desk:500},"37":{home:1500,desk:1000},"38":{home:950,desk:650},"39":{home:950,desk:650},"40":{home:900,desk:500},"41":{home:700,desk:450},"42":{home:700,desk:500},"43":{home:800,desk:500},"44":{home:800,desk:500},"45":{home:1000,desk:650},"46":{home:900,desk:500},"47":{home:950,desk:600},"48":{home:900,desk:500},"49":{home:1300,desk:850},"50":{home:1500,desk:1000},"51":{home:950,desk:500},"52":{home:1000,desk:650},"53":{home:1500,desk:900},"54":{home:1500,desk:900},"55":{home:950,desk:650},"56":{home:1500,desk:1000},"57":{home:950,desk:650},"58":{home:1000,desk:650}};
 function getWilayaCode(w){ return String(w||"").slice(0,2); }
@@ -235,7 +236,7 @@ export default function App(){
           <Routes>
             <Route path="/" element={<Storefront products={products} placeOrder={placeOrder} lang={lang} setLang={setLang} t={t} />} />
             <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin" element={<ProtectedRoute><Dashboard products={products} saveProducts={saveProducts} orders={orders} commit={commit} setOrders={setOrders} setProducts={setProducts} reload={load} /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute><Dashboard products={products} saveProducts={saveProducts} orders={orders} commit={commit} setOrders={setOrders} setProducts={setProducts} reload={load} lang={lang} setLang={setLang} t={t} /></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
@@ -254,7 +255,7 @@ function AdminLogin(){
     e.preventDefault();
     const block=Number(localStorage.getItem("dz-admin-block")||0);
     if(Date.now()<block){ const s=Math.ceil((block-Date.now())/1000); return setErr(`محظور مؤقتا — حاول بعد ${s} ثانية`); }
-    if(pw===ADMIN_PASSWORD){ localStorage.setItem("dz-admin-auth","true"); localStorage.removeItem("dz-admin-attempts"); localStorage.removeItem("dz-admin-block"); navigate("/admin",{replace:true}); }
+    if(pw===getAdminPassword()){ localStorage.setItem("dz-admin-auth","true"); localStorage.removeItem("dz-admin-attempts"); localStorage.removeItem("dz-admin-block"); navigate("/admin",{replace:true}); }
     else {
       const n=Number(localStorage.getItem("dz-admin-attempts")||0)+1;
       localStorage.setItem("dz-admin-attempts", String(n));
@@ -286,7 +287,6 @@ function AdminLogin(){
           <div style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:"var(--muted-2)"}}><Lock size={16}/></div>
         </div>
         {err && <div style={{marginTop:10,background:"var(--red-soft)",border:"1px solid #FECACA",color:"var(--red)",fontSize:12.5,fontWeight:700,borderRadius:10,padding:"9px 11px"}}>{err}</div>}
-        {IS_DEFAULT_PW && <div className="mono" style={{marginTop:10,color:"#94A3B8",fontSize:11}}>الافتراضية: <b style={{color:"var(--ink)"}}>{ADMIN_PASSWORD}</b> — غيّرها عبر <code style={{background:"#fff",border:"1px solid var(--line)",padding:"2px 6px",borderRadius:6}}>VITE_ADMIN_PASSWORD</code></div>}
         <button type="submit" className="btn-red tap" style={{width:"100%",marginTop:14,background:"var(--red)",color:"#fff",border:"none",borderRadius:12,padding:"13px 0",fontWeight:800,fontSize:14,cursor:"pointer",boxShadow:"0 8px 20px rgba(215,48,59,.22)"}}>دخول آمن →</button>
         <button type="button" onClick={()=>navigate("/")} className="btn-quiet tap" style={{width:"100%",marginTop:8,background:"#fff",border:"1px solid var(--line)",borderRadius:12,padding:"11px 0",fontWeight:700,fontSize:13,cursor:"pointer"}}>العودة للمتجر</button>
       </form>
@@ -589,7 +589,7 @@ function OrderConfirmed({order,onClose,t,lang}){
   );
 }
 
-function Dashboard({products,saveProducts,orders,commit,setOrders,setProducts,reload}){
+function Dashboard({products,saveProducts,orders,commit,setOrders,setProducts,reload,lang,setLang,t}){
   const navigate=useNavigate();
   const [tab,setTab]=useState("orders");
   const [orderFilter,setOrderFilter]=useState("pending");
@@ -636,6 +636,19 @@ function Dashboard({products,saveProducts,orders,commit,setOrders,setProducts,re
     try{ await commit(freshOrders.map(o=>o.id===id?{...o,status:s}:o), nextProducts) }
     catch(e){ setErr(isQuotaError(e)?"مساحة التخزين ممتلئة":"تعذر الحفظ") }
   };
+  const [showSettings,setShowSettings]=useState(false);
+  const [curPw,setCurPw]=useState("");
+  const [newPw,setNewPw]=useState("");
+  const [newPw2,setNewPw2]=useState("");
+  const [pwErr,setPwErr]=useState("");
+  const [pwOk,setPwOk]=useState(false);
+  const handlePwChange=()=>{
+    setPwErr(""); setPwOk(false);
+    if(getAdminPassword()!==curPw) return setPwErr("كلمة المرور الحالية غير صحيحة");
+    if(newPw.length<4) return setPwErr("الجديدة قصيرة — 4 أحرف على الأقل");
+    if(newPw!==newPw2) return setPwErr("التأكيد غير متطابق");
+    try{ localStorage.setItem("dz-admin-pw", newPw); setPwOk(true); setCurPw(""); setNewPw(""); setNewPw2(""); setTimeout(()=>setPwOk(false),2000); }catch{ setPwErr("تعذر الحفظ"); }
+  };
   const logout=()=>{ localStorage.removeItem("dz-admin-auth"); navigate("/admin/login",{replace:true}) };
   const pending=orders.filter(o=>o.status==="قيد الانتظار");
   const confirmed=orders.filter(o=>o.status==="مؤكد");
@@ -655,7 +668,10 @@ function Dashboard({products,saveProducts,orders,commit,setOrders,setProducts,re
               <div className="mono" style={{color:"#94A3B8",fontSize:10,letterSpacing:.6}}>SELLER · PRIVATE</div>
             </div>
           </div>
-          <button onClick={logout} style={{background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.14)",color:"#fff",borderRadius:10,padding:"7px 10px",display:"flex",alignItems:"center",gap:6,fontSize:12,fontWeight:700,cursor:"pointer"}}><LogOut size={13}/> خروج</button>
+          <div style={{display:"flex",gap:6,alignItems:"center"}}>
+            <button onClick={()=>setShowSettings(true)} style={{background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.14)",color:"#fff",borderRadius:10,padding:"7px 10px",display:"flex",alignItems:"center",gap:6,fontSize:12,fontWeight:700,cursor:"pointer"}}><Settings size={13}/> إعدادات</button>
+            <button onClick={logout} style={{background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.14)",color:"#fff",borderRadius:10,padding:"7px 10px",display:"flex",alignItems:"center",gap:6,fontSize:12,fontWeight:700,cursor:"pointer"}}><LogOut size={13}/> خروج</button>
+          </div>
         </div>
         <div style={{marginTop:12,display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
           <div style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.1)",borderRadius:14,padding:10}}>
@@ -725,6 +741,32 @@ function Dashboard({products,saveProducts,orders,commit,setOrders,setProducts,re
                 )}
               </div>
             ))}
+          </div>
+        </div>
+      )}
+      {showSettings && (
+        <div style={{position:"fixed",inset:0,background:"rgba(12,14,11,.5)",backdropFilter:"blur(6px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:50,padding:14}}>
+          <div style={{maxWidth:380,width:"100%",background:"#fff",borderRadius:20,padding:16,border:"1px solid var(--line)",boxShadow:"0 16px 40px rgba(0,0,0,.2)"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+              <h3 style={{margin:0,fontSize:15,fontWeight:800,display:"flex",alignItems:"center",gap:7}}><Settings size={16}/> إعدادات</h3>
+              <button onClick={()=>setShowSettings(false)} style={{width:30,height:30,borderRadius:10,background:"var(--paper-4)",border:"1px solid var(--line)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}><X size={14}/></button>
+            </div>
+            <div style={{background:"var(--paper-4)",border:"1px solid var(--line)",borderRadius:12,padding:12,marginBottom:12}}>
+              <div style={{fontWeight:700,fontSize:12,marginBottom:8,display:"flex",alignItems:"center",gap:6}}><Languages size={13}/> اللغة</div>
+              <div style={{display:"flex",gap:8}}>
+                <button onClick={()=>setLang("ar")} style={{flex:1,padding:"10px 0",borderRadius:10,border: lang==="ar"?"1.5px solid var(--ink)":"1px solid var(--line)",background: lang==="ar"?"var(--ink)":"#fff",color: lang==="ar"?"#fff":"var(--ink)",fontWeight:800,fontSize:13,cursor:"pointer"}}>العربية</button>
+                <button onClick={()=>setLang("en")} style={{flex:1,padding:"10px 0",borderRadius:10,border: lang==="en"?"1.5px solid var(--ink)":"1px solid var(--line)",background: lang==="en"?"var(--ink)":"#fff",color: lang==="en"?"#fff":"var(--ink)",fontWeight:800,fontSize:13,cursor:"pointer"}}>English</button>
+              </div>
+            </div>
+            <div style={{background:"#fff",border:"1px solid var(--line)",borderRadius:12,padding:12}}>
+              <div style={{fontWeight:700,fontSize:12,marginBottom:8,display:"flex",alignItems:"center",gap:6}}><KeyRound size={13}/> تغيير كلمة المرور</div>
+              <input type="password" placeholder="الحالية" value={curPw} onChange={e=>setCurPw(e.target.value)} style={{width:"100%",padding:"10px 12px",borderRadius:10,border:"1px solid var(--line)",background:"var(--paper-4)",fontSize:13,boxSizing:"border-box",marginBottom:8}}/>
+              <input type="password" placeholder="الجديدة" value={newPw} onChange={e=>setNewPw(e.target.value)} style={{width:"100%",padding:"10px 12px",borderRadius:10,border:"1px solid var(--line)",background:"var(--paper-4)",fontSize:13,boxSizing:"border-box",marginBottom:8}}/>
+              <input type="password" placeholder="تأكيد الجديدة" value={newPw2} onChange={e=>setNewPw2(e.target.value)} style={{width:"100%",padding:"10px 12px",borderRadius:10,border:"1px solid var(--line)",background:"var(--paper-4)",fontSize:13,boxSizing:"border-box"}}/>
+              {pwErr && <div style={{marginTop:8,background:"var(--red-soft)",border:"1px solid #FECACA",color:"var(--red)",fontSize:11,fontWeight:700,borderRadius:8,padding:"7px 9px"}}>{pwErr}</div>}
+              {pwOk && <div style={{marginTop:8,background:"var(--ok-soft)",border:"1px solid var(--ok-line)",color:"#166534",fontSize:11,fontWeight:700,borderRadius:8,padding:"7px 9px",display:"flex",alignItems:"center",gap:6}}><Check size={12}/> تم التغيير</div>}
+              <button onClick={handlePwChange} style={{width:"100%",marginTop:10,background:"var(--ink)",color:"#fff",border:"none",borderRadius:10,padding:"11px 0",fontWeight:800,fontSize:13,cursor:"pointer"}}>حفظ كلمة المرور</button>
+            </div>
           </div>
         </div>
       )}
