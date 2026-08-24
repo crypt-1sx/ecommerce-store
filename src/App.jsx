@@ -354,8 +354,7 @@ function Storefront({products,placeOrder,lang,setLang,t}){
       <div style={{position:"sticky",top:0,zIndex:20,background:"rgba(255,255,255,.92)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",borderBottom:"1px solid var(--line)",padding:"10px 12px",display:"flex",alignItems:"center",gap:10}}>
         <div style={{width:34,height:34,borderRadius:11,background:"var(--ink)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,border:"1px solid #1e211e"}}><Store size={15} color="#fff"/></div>
         <div style={{lineHeight:1}}>
-          <div style={{fontWeight:800,fontSize:14,letterSpacing:-.3,color:"var(--ink)",display:"flex",alignItems:"center",gap:6}}>{t("banner")} <span style={{fontSize:10,fontWeight:700,letterSpacing:.5,color:"var(--muted)",background:"var(--paper-4)",border:"1px solid var(--line)",padding:"2px 6px",borderRadius:20}}>DZ • 2026</span></div>
-          <div style={{fontSize:10.5,color:"var(--muted)",marginTop:1,display:"flex",alignItems:"center",gap:6}}><ShieldCheck size={11}/> توصيل 58 ولاية • تأكيد هاتفي</div>
+          <div style={{fontWeight:800,fontSize:15,letterSpacing:-.3,color:"var(--ink)"}}>{t("banner")}</div>
         </div>
         <button onClick={()=>setLang(lang==="ar"?"en":"ar")} className="tap" style={{marginInlineStart:"auto",background:lang==="ar"?"var(--ink)":"#fff",border:"1px solid var(--line)",color:lang==="ar"?"#fff":"var(--ink)",borderRadius:20,padding:"6px 11px",fontSize:11,fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",gap:5}}><span style={{width:6,height:6,borderRadius:10,background:lang==="ar"?"var(--sky)":"var(--red)"}}/>{lang==="ar"?"EN":"AR"}</button>
       </div>
