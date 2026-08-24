@@ -772,7 +772,7 @@ function Dashboard({products,saveProducts,orders,commit,setOrders,setProducts,re
           </div>
         </div>
       ): tab==="shipping" ? (
-        <ShippingEditor />
+        <ShippingEditor lang={lang} />
       ):(
         <div style={{padding:"10px 14px"}}>
           <button onClick={()=>setShowAdd(true)} style={{width:"100%",background:"#fff",border:"1.5px dashed var(--red)",color:"var(--red)",fontWeight:800,fontSize:13,borderRadius:14,padding:"12px 0",display:"flex",alignItems:"center",justifyContent:"center",gap:7,cursor:"pointer"}}><Plus size={15}/> {t("addProduct")}</button>
@@ -892,7 +892,7 @@ function OrderCard({order,setStatus,lang="ar"}){
   );
 }
 
-function ShippingEditor(){
+function ShippingEditor({lang="ar"}){
   const [rates,setRates]=useState(()=>getShippingRates());
   const [saved,setSaved]=useState(false);
   const [saving,setSaving]=useState(false);
