@@ -454,7 +454,7 @@ function ProductDetail({product,onBack,onOrder,t,lang}){
         <div style={{marginTop:14}}>
           <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:10}}>
             <h1 style={{margin:0,fontSize:22,fontWeight:800,letterSpacing:-.5,lineHeight:1.25}}>{product.name}</h1>
-            <span style={{background:out?"#F1F5F9":"var(--ok-soft)",border:out?"1px solid var(--line)":"1px solid var(--ok-line)",color:out?varMuted:"#166534",fontSize:11,fontWeight:800,padding:"6px 10px",borderRadius:20,whiteSpace:"nowrap",display:"inline-flex",alignItems:"center",gap:5}}><span style={{width:6,height:6,borderRadius:10,background: out?"#94A3B8":"#16A34A"}}/>{out?t("outOfStock"):t("available")}</span>
+            <span style={{color:out?varMuted:"#166534",fontSize:11,fontWeight:700,whiteSpace:"nowrap",display:"inline-flex",alignItems:"center",gap:5}}><span style={{width:6,height:6,borderRadius:10,background: out?"#94A3B8":"#16A34A"}}/>{out?t("outOfStock"):t("available")}</span>
           </div>
           <div style={{marginTop:10,display:"flex",alignItems:"baseline",gap:8,flexWrap:"wrap"}}>
             <span className="num" style={{fontSize:27,fontWeight:800,letterSpacing:-.7}}>{riyal(product.price, lang)}</span>
@@ -466,11 +466,11 @@ function ProductDetail({product,onBack,onOrder,t,lang}){
           </div>
           <div style={{marginTop:10,display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
             <div style={{background:"#fff",border:"1px solid var(--line)",borderRadius:14,padding:11,display:"flex",gap:9,alignItems:"center"}}>
-              <div style={{width:30,height:30,borderRadius:9,background:"var(--sky-2)",border:"1px solid var(--line)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Truck size={14} color="var(--ink)"/></div>
+              <Truck size={16} color="var(--ink)" style={{flexShrink:0}}/>
               <div><div style={{fontWeight:800,fontSize:11.5,lineHeight:1}}>توصيل 58 ولاية</div><div style={{fontSize:11,color:"var(--muted)",marginTop:2}}>24-48 ساعة</div></div>
             </div>
             <div style={{background:"#fff",border:"1px solid var(--line)",borderRadius:14,padding:11,display:"flex",gap:9,alignItems:"center"}}>
-              <div style={{width:30,height:30,borderRadius:9,background:"var(--ok-soft)",border:"1px solid var(--ok-line)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><ShieldCheck size={14} color="var(--ok)"/></div>
+              <ShieldCheck size={16} color="var(--ink)" style={{flexShrink:0}}/>
               <div><div style={{fontWeight:800,fontSize:11.5,lineHeight:1}}>دفع آمن</div><div style={{fontSize:11,color:"var(--muted)",marginTop:2}}>عند الاستلام</div></div>
             </div>
           </div>
