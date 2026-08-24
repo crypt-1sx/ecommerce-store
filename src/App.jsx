@@ -35,6 +35,9 @@ async function saveAdminPassword(newPw){
   try{ localStorage.setItem("dz-admin-pw", newPw); }catch{}
 }
 const WILAYAS = ["01 - أدرار","02 - الشلف","03 - الأغواط","04 - أم البواقي","05 - باتنة","06 - بجاية","07 - بسكرة","08 - بشار","09 - البليدة","10 - البويرة","11 - تمنراست","12 - تبسة","13 - تلمسان","14 - تيارت","15 - تيزي وزو","16 - الجزائر","17 - الجلفة","18 - جيجل","19 - سطيف","20 - سعيدة","21 - سكيكدة","22 - سيدي بلعباس","23 - عنابة","24 - قالمة","25 - قسنطينة","26 - المدية","27 - مستغانم","28 - المسيلة","29 - معسكر","30 - ورقلة","31 - وهران","32 - البيض","33 - إليزي","34 - برج بوعريريج","35 - بومرداس","36 - الطارف","37 - تندوف","38 - تيسمسيلت","39 - الوادي","40 - خنشلة","41 - سوق أهراس","42 - تيبازة","43 - ميلة","44 - عين الدفلى","45 - النعامة","46 - عين تموشنت","47 - غرداية","48 - غليزان","49 - تيميمون","50 - برج باجي مختار","51 - أولاد جلال","52 - بني عباس","53 - عين صالح","54 - عين قزام","55 - تقرت","56 - جانت","57 - المغير","58 - المنيعة"];
+const WILAYAS_EN = ["01 - Adrar","02 - Chlef","03 - Laghouat","04 - Oum El Bouaghi","05 - Batna","06 - Bejaia","07 - Biskra","08 - Bechar","09 - Blida","10 - Bouira","11 - Tamanrasset","12 - Tebessa","13 - Tlemcen","14 - Tiaret","15 - Tizi Ouzou","16 - Algiers","17 - Djelfa","18 - Jijel","19 - Setif","20 - Saida","21 - Skikda","22 - Sidi Bel Abbes","23 - Annaba","24 - Guelma","25 - Constantine","26 - Medea","27 - Mostaganem","28 - M\'Sila","29 - Mascara","30 - Ouargla","31 - Oran","32 - El Bayadh","33 - Illizi","34 - Bordj Bou Arreridj","35 - Boumerdes","36 - El Tarf","37 - Tindouf","38 - Tissemsilt","39 - El Oued","40 - Khenchela","41 - Souk Ahras","42 - Tipaza","43 - Mila","44 - Ain Defla","45 - Naama","46 - Ain Temouchent","47 - Ghardaia","48 - Relizane","49 - Timimoun","50 - Bordj Badji Mokhtar","51 - Ouled Djellal","52 - Beni Abbes","53 - In Salah","54 - In Guezzam","55 - Touggourt","56 - Djanet","57 - El Mghaier","58 - El Meniaa"];
+function getWilayas(lang){ return lang==="en"? WILAYAS_EN : WILAYAS; }
+function statusLabel(s, lang){ const m={"قيد الانتظار": lang==="en"?"Pending": s, "مؤكد": lang==="en"?"Confirmed":s, "ملغى": lang==="en"?"Cancelled":s, "تم التوصيل": lang==="en"?"Delivered":s}; return m[s]||s; }
 const SHIPPING_DEFAULT = {"01":{home:1300,desk:950},"02":{home:850,desk:500},"03":{home:950,desk:600},"04":{home:850,desk:600},"05":{home:850,desk:600},"06":{home:900,desk:500},"07":{home:950,desk:600},"08":{home:1000,desk:700},"09":{home:700,desk:450},"10":{home:800,desk:500},"11":{home:1500,desk:900},"12":{home:1000,desk:550},"13":{home:900,desk:550},"14":{home:900,desk:550},"15":{home:800,desk:500},"16":{home:500,desk:250},"17":{home:950,desk:550},"18":{home:900,desk:500},"19":{home:900,desk:500},"20":{home:900,desk:500},"21":{home:900,desk:500},"22":{home:900,desk:500},"23":{home:850,desk:500},"24":{home:900,desk:500},"25":{home:800,desk:500},"26":{home:800,desk:500},"27":{home:900,desk:500},"28":{home:850,desk:550},"29":{home:900,desk:500},"30":{home:950,desk:650},"31":{home:800,desk:500},"32":{home:1000,desk:650},"33":{home:1500,desk:1000},"34":{home:800,desk:500},"35":{home:700,desk:450},"36":{home:850,desk:500},"37":{home:1500,desk:1000},"38":{home:950,desk:650},"39":{home:950,desk:650},"40":{home:900,desk:500},"41":{home:700,desk:450},"42":{home:700,desk:500},"43":{home:800,desk:500},"44":{home:800,desk:500},"45":{home:1000,desk:650},"46":{home:900,desk:500},"47":{home:950,desk:600},"48":{home:900,desk:500},"49":{home:1300,desk:850},"50":{home:1500,desk:1000},"51":{home:950,desk:500},"52":{home:1000,desk:650},"53":{home:1500,desk:900},"54":{home:1500,desk:900},"55":{home:950,desk:650},"56":{home:1500,desk:1000},"57":{home:950,desk:650},"58":{home:1000,desk:650}};
 function getWilayaCode(w){ return String(w||"").slice(0,2); }
 function getShippingRates(){ try{ const o=JSON.parse(localStorage.getItem("dz-shipping-rates")||"null"); return o && typeof o==="object" ? {...SHIPPING_DEFAULT, ...o} : SHIPPING_DEFAULT }catch{ return SHIPPING_DEFAULT } }
@@ -51,7 +54,15 @@ const T = {
     errName:"أدخل الاسم و اللقب", errShort:"الاسم قصير جدا", errPhone:"رقم الهاتف غير صحيح", errWilaya:"اختر الولاية", errCommune:"اختر البلدية", errBot:"تم كشف نشاط مشبوه", errWait:(s)=>`مهلا! انتظر ${s} ثانية قبل طلب جديد`, errDup:"لقد طلبت هذا المنتج منذ قليل — انتظر 5 دقائق",
     spamWait:(s)=>`مهلا! انتظر ${s} ثانية`, successTitle:"تم استلام طلبك", successMsg:"شكرا لثقتك. سيتصل بك فريقنا خلال ساعات لتأكيد التوصيل.", saved:"رقم الطلب محفوظ", continueShop:"متابعة التسوق", banner:"DZ Store",
     loading:"جاري التحميل...", outOfStock:"نفد المخزون", stockLeft:(n)=>`متوفر: ${n}`, orderNo:"رقم الطلب",
-    errStock:(n)=> n>0?`الكمية المتوفرة: ${n} فقط`:"نفد المخزون", errGone:"هذا المنتج لم يعد متوفرا", errStorage:"تعذر حفظ الطلب — مساحة التخزين ممتلئة"
+    errStock:(n)=> n>0?`الكمية المتوفرة: ${n} فقط`:"نفد المخزون", errGone:"هذا المنتج لم يعد متوفرا", errStorage:"تعذر حفظ الطلب — مساحة التخزين ممتلئة",
+    adminTitle:"لوحة التحكم", adminPrivate:"SELLER · PRIVATE", logout:"خروج", settings:"إعدادات",
+    ordersTab:"الطلبات", productsTab:"المنتجات", shippingTab:"الشحن",
+    pending:"قيد الانتظار", confirmed:"مؤكد", cancelled:"ملغى", delivered:"تم التوصيل",
+    addProduct:"إضافة منتج جديد", noOrders:"لا توجد طلبات في هذا القسم",
+    collected:"محصّل", expected:"منتظر", pendingShort:"قيد الانتظار", confirmedShort:"مؤكد", language:"اللغة",
+    currentPw:"الحالية", newPw:"الجديدة", confirmPw:"تأكيد الجديدة", savePw:"حفظ كلمة المرور", pwChanged:"تم التغيير", pwErrShort:"الجديدة قصيرة — 4 أحرف على الأقل", pwErrMismatch:"التأكيد غير متطابق", pwErrCurrent:"كلمة المرور الحالية غير صحيحة",
+    sellerLogin:"دخول البائع", sellerDesc:"مساحة محمية. لن يراها الزبائن. أدخل كلمة المرور للوصول إلى الطلبات والمنتجات.", protected:"محمي بكلمة مرور", password:"كلمة المرور", secureEntry:"دخول آمن →", backToStore:"العودة للمتجر", sellerUi:"واجهة بائع احترافية",
+    blocked:(s)=>`محظور مؤقتا — حاول بعد ${s} ثانية`, wrongPw:(n)=>`كلمة المرور غير صحيحة (${n}/5)`, blocked60:"محاولات كثيرة — تم الحظر 60 ثانية"
   },
   en: {
     currency:"DZD", view:"View →", empty:"No products yet", detail:"Product Details", available:"In stock", orderNow:"Order Now", confirmPhone:"Phone confirmation within hours", continueOrder:"Continue",
@@ -59,7 +70,15 @@ const T = {
     errName:"Enter first & last name", errShort:"Name too short", errPhone:"Invalid phone", errWilaya:"Select province", errCommune:"Select commune", errBot:"Bot detected", errWait:(s)=>`Wait ${s}s before next order`, errDup:"You ordered this recently — wait 5 min",
     spamWait:(s)=>`Wait ${s}s`, successTitle:"Order Received", successMsg:"Thanks! We'll call you within hours to confirm. Cash on delivery.", saved:"Order saved", continueShop:"Continue Shopping", banner:"DZ Store",
     loading:"Loading...", outOfStock:"Out of stock", stockLeft:(n)=>`${n} in stock`, orderNo:"Order No.",
-    errStock:(n)=> n>0?`Only ${n} left in stock`:"Out of stock", errGone:"This product is no longer available", errStorage:"Could not save the order — storage is full"
+    errStock:(n)=> n>0?`Only ${n} left in stock`:"Out of stock", errGone:"This product is no longer available", errStorage:"Could not save the order — storage is full",
+    adminTitle:"Dashboard", adminPrivate:"SELLER · PRIVATE", logout:"Logout", settings:"Settings",
+    ordersTab:"Orders", productsTab:"Products", shippingTab:"Shipping",
+    pending:"Pending", confirmed:"Confirmed", cancelled:"Cancelled", delivered:"Delivered",
+    addProduct:"Add Product", noOrders:"No orders in this section",
+    collected:"Collected", expected:"Pending", pendingShort:"Pending", confirmedShort:"Confirmed", language:"Language",
+    currentPw:"Current", newPw:"New", confirmPw:"Confirm new", savePw:"Save password", pwChanged:"Changed", pwErrShort:"Too short — 4 chars min", pwErrMismatch:"Mismatch", pwErrCurrent:"Current password wrong",
+    sellerLogin:"Seller Login", sellerDesc:"Protected area. Enter password to manage orders and products.", protected:"Password protected", password:"Password", secureEntry:"Secure Entry →", backToStore:"Back to Store", sellerUi:"Seller interface",
+    blocked:(s)=>`Temporarily blocked — try after ${s}s`, wrongPw:(n)=>`Wrong password (${n}/5)`, blocked60:"Too many attempts — blocked 60s"
   }
 };
 function riyal(n, lang="ar"){ return n.toLocaleString(lang==="en"?"en-US":"en-DZ") + " " + (lang==="en"?"DZD":"دج"); }
@@ -108,9 +127,10 @@ function isDuplicateOrder(phone, productId){
 }
 
 export default function App(){
-  const [lang,setLang]=useState(()=> localStorage.getItem("dz-lang")||"ar");
+  const [lang,setLangState]=useState(()=> localStorage.getItem("dz-lang")||"ar");
+  const setLang=(l)=>{ setLangState(l); try{ localStorage.setItem("dz-lang", l); document.documentElement.lang=l; document.documentElement.dir=l==="ar"?"rtl":"ltr"; }catch{} };
   const t=(k,...a)=>{ const v=T[lang][k]; return typeof v==="function"?v(...a):v||k; };
-  useEffect(()=>{ localStorage.setItem("dz-lang", lang); document.documentElement.lang=lang; document.documentElement.dir=lang==="ar"?"rtl":"ltr"; },[lang]);
+  useEffect(()=>{ try{ document.documentElement.lang=lang; document.documentElement.dir=lang==="ar"?"rtl":"ltr"; }catch{} },[lang]);
   const [products,setProducts]=useState(null);
   const [orders,setOrders]=useState(null);
   const [loading,setLoading]=useState(true);
@@ -275,7 +295,7 @@ export default function App(){
         <div className="shell">
           <Routes>
             <Route path="/" element={<Storefront products={products} placeOrder={placeOrder} lang={lang} setLang={setLang} t={t} />} />
-            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/login" element={<AdminLogin lang={lang} setLang={setLang} t={t} />} />
             <Route path="/admin" element={<ProtectedRoute><Dashboard products={products} saveProducts={saveProducts} orders={orders} commit={commit} setOrders={setOrders} setProducts={setProducts} reload={load} lang={lang} setLang={setLang} t={t} /></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
@@ -287,21 +307,21 @@ export default function App(){
 }
 function ProtectedRoute({children}){ if(!isAdminAuthenticated()) return <Navigate to="/admin/login" replace />; return children; }
 
-function AdminLogin(){
+function AdminLogin({lang="ar", setLang=()=>{}, t=(k)=>k}){
   const navigate=useNavigate();
   const [pw,setPw]=useState(""); const [err,setErr]=useState("");
   useEffect(()=>{ if(isAdminAuthenticated()) navigate("/admin",{replace:true}) },[navigate]);
   const submit=async(e)=>{
     e.preventDefault();
     const block=Number(localStorage.getItem("dz-admin-block")||0);
-    if(Date.now()<block){ const s=Math.ceil((block-Date.now())/1000); return setErr(`محظور مؤقتا — حاول بعد ${s} ثانية`); }
+    if(Date.now()<block){ const s=Math.ceil((block-Date.now())/1000); return setErr(t("blocked", s)); }
     const curPw=await fetchAdminPassword();
     if(pw===curPw){ localStorage.setItem("dz-admin-auth","true"); localStorage.removeItem("dz-admin-attempts"); localStorage.removeItem("dz-admin-block"); navigate("/admin",{replace:true}); }
     else {
       const n=Number(localStorage.getItem("dz-admin-attempts")||0)+1;
       localStorage.setItem("dz-admin-attempts", String(n));
-      if(n>=5){ localStorage.setItem("dz-admin-block", String(Date.now()+ 60*1000)); setErr("محاولات كثيرة — تم الحظر 60 ثانية"); }
-      else setErr(`كلمة المرور غير صحيحة (${n}/5)`);
+      if(n>=5){ localStorage.setItem("dz-admin-block", String(Date.now()+ 60*1000)); setErr(t("blocked60")); }
+      else setErr(t("wrongPw", n));
     }
   };
   return (
@@ -309,29 +329,30 @@ function AdminLogin(){
       <div style={{display:"flex",alignItems:"center",gap:9,marginBottom:18}}>
         <div style={{width:36,height:36,borderRadius:12,background:"var(--ink)",display:"flex",alignItems:"center",justifyContent:"center"}}><Store size={16} color="#fff" /></div>
         <div><div style={{fontWeight:800,fontSize:13.5,lineHeight:1}}>متجري</div><div className="mono" style={{fontSize:10,color:"var(--muted)",letterSpacing:.6}}>ADMIN / DZ-STORE</div></div>
+        <button onClick={()=>setLang(lang==="ar"?"en":"ar")} style={{marginInlineStart:"auto",background: lang==="ar"?"var(--ink)":"#fff",border:"1px solid var(--line)",color: lang==="ar"?"#fff":"var(--ink)",borderRadius:20,padding:"5px 10px",fontSize:11,fontWeight:800,cursor:"pointer"}}>{lang==="ar"?"EN":"AR"}</button>
       </div>
       <div style={{background:"var(--ink)",color:"#fff",borderRadius:20,padding:18,position:"relative",overflow:"hidden",marginBottom:18,border:"1px solid #1e211e"}}>
         <div style={{position:"absolute",inset:0,opacity:.08,background:"radial-gradient(520px 220px at 85% -10%, #fff, transparent), linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px), linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px)",backgroundSize:"auto, 22px 22px, 22px 22px"}}/>
         <div style={{position:"relative",display:"flex",gap:12,alignItems:"flex-start"}}>
           <div style={{width:40,height:40,borderRadius:12,background:"var(--red)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Lock size={16} color="#fff"/></div>
           <div>
-            <div style={{fontWeight:800,fontSize:15}}>دخول البائع</div>
-            <div style={{fontSize:12.5,opacity:.72,lineHeight:1.7,marginTop:4}}>مساحة محمية. لن يراها الزبائن. أدخل كلمة المرور للوصول إلى الطلبات والمنتجات.</div>
-            <div style={{marginTop:10,display:"inline-flex",alignItems:"center",gap:6,background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.12)",borderRadius:20,padding:"5px 10px",fontSize:11}}><ShieldCheck size={12}/> محمي بكلمة مرور</div>
+            <div style={{fontWeight:800,fontSize:15}}>{t("sellerLogin")}</div>
+            <div style={{fontSize:12.5,opacity:.72,lineHeight:1.7,marginTop:4}}>{t("sellerDesc")}</div>
+            <div style={{marginTop:10,display:"inline-flex",alignItems:"center",gap:6,background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.12)",borderRadius:20,padding:"5px 10px",fontSize:11}}><ShieldCheck size={12}/> {t("protected")}</div>
           </div>
         </div>
       </div>
       <form onSubmit={submit} style={{background:"var(--paper-4)",border:"1px solid var(--line)",borderRadius:18,padding:16}}>
-        <label style={{fontSize:11.5,fontWeight:700,color:"var(--muted)",letterSpacing:.3}}>كلمة المرور</label>
+        <label style={{fontSize:11.5,fontWeight:700,color:"var(--muted)",letterSpacing:.3}}>{t("password")}</label>
         <div style={{marginTop:8,position:"relative"}}>
           <input autoFocus type="password" value={pw} onChange={e=>setPw(e.target.value)} placeholder="••••••••" style={{width:"100%",padding:"13px 14px 13px 40px",borderRadius:12,border:"1px solid var(--line)",background:"#fff",fontSize:14,outline:"none"}}/>
           <div style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:"var(--muted-2)"}}><Lock size={16}/></div>
         </div>
         {err && <div style={{marginTop:10,background:"var(--red-soft)",border:"1px solid #FECACA",color:"var(--red)",fontSize:12.5,fontWeight:700,borderRadius:10,padding:"9px 11px"}}>{err}</div>}
-        <button type="submit" className="btn-red tap" style={{width:"100%",marginTop:14,background:"var(--red)",color:"#fff",border:"none",borderRadius:12,padding:"13px 0",fontWeight:800,fontSize:14,cursor:"pointer",boxShadow:"0 8px 20px rgba(215,48,59,.22)"}}>دخول آمن →</button>
-        <button type="button" onClick={()=>navigate("/")} className="btn-quiet tap" style={{width:"100%",marginTop:8,background:"#fff",border:"1px solid var(--line)",borderRadius:12,padding:"11px 0",fontWeight:700,fontSize:13,cursor:"pointer"}}>العودة للمتجر</button>
+        <button type="submit" className="btn-red tap" style={{width:"100%",marginTop:14,background:"var(--red)",color:"#fff",border:"none",borderRadius:12,padding:"13px 0",fontWeight:800,fontSize:14,cursor:"pointer",boxShadow:"0 8px 20px rgba(215,48,59,.22)"}}>{t("secureEntry")}</button>
+        <button type="button" onClick={()=>navigate("/")} className="btn-quiet tap" style={{width:"100%",marginTop:8,background:"#fff",border:"1px solid var(--line)",borderRadius:12,padding:"11px 0",fontWeight:700,fontSize:13,cursor:"pointer"}}>{t("backToStore")}</button>
       </form>
-      <div style={{marginTop:"auto",paddingTop:16,display:"flex",alignItems:"center",justifyContent:"center",gap:6,color:"var(--muted-2)",fontSize:11}}><Sparkles size={12}/> واجهة بائع احترافية</div>
+      <div style={{marginTop:"auto",paddingTop:16,display:"flex",alignItems:"center",justifyContent:"center",gap:6,color:"var(--muted-2)",fontSize:11}}><Sparkles size={12}/> {t("sellerUi")}</div>
     </div>
   );
 }
@@ -548,7 +569,7 @@ function OrderForm({product,onBack,onSubmit,t,lang}){
           </div>
           <div style={{marginTop:10}}><label style={labelStyle}>{t("phone")} <span style={{color:"var(--muted-2)",fontWeight:600}}>— 0 5/6/7 • 10 أرقام</span></label><input className="field" style={{...inputStyle,direction:"ltr",textAlign:"left"}} value={phone} onChange={e=>setPhone(e.target.value)} placeholder="07… / 05… / 06…" type="tel"/></div>
           <div style={{marginTop:10,display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-            <div><label style={labelStyle}><MapPin size={11} style={{display:"inline",marginInlineEnd:4}}/>{t("wilaya")}</label><select className="field" style={{...inputStyle}} value={wilaya} onChange={e=>setWilaya(e.target.value)}><option value="">{t("choose")}</option>{WILAYAS.map(w=><option key={w} value={w}>{w}</option>)}</select></div>
+            <div><label style={labelStyle}><MapPin size={11} style={{display:"inline",marginInlineEnd:4}}/>{t("wilaya")}</label><select className="field" style={{...inputStyle}} value={wilaya} onChange={e=>setWilaya(e.target.value)}><option value="">{t("choose")}</option>{getWilayas(lang).map(w=><option key={w} value={w}>{w}</option>)}</select></div>
             <div><label style={labelStyle}>{t("commune")}</label><select className="field" style={{...inputStyle, opacity: communes.length?1:.6}} value={commune} onChange={e=>setCommune(e.target.value)} disabled={!wilaya}><option value="">{wilaya? (communes.length? t("choose") : "—") : t("choose")}</option>{communes.map(c=><option key={c} value={c}>{c}</option>)}</select></div>
           </div>
           {wilaya && <div style={{marginTop:8,background:"#fff",border:"1px solid var(--line)",borderRadius:10,padding:"8px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}><span style={{fontSize:11,color:"var(--muted)",display:"flex",alignItems:"center",gap:6}}><Truck size={12}/>{delivery==="منزل"?t("home"):t("office")} • {wilaya.split(" - ")[1]||wilaya}</span><span className="num mono" style={{fontSize:12,fontWeight:800,color:"var(--ink)"}}>{riyal(getShippingFee(wilaya, delivery),lang)}</span></div>}
@@ -705,58 +726,58 @@ function Dashboard({products,saveProducts,orders,commit,setOrders,setProducts,re
           <div style={{display:"flex",alignItems:"center",gap:10}}>
             <button onClick={()=>navigate("/")} style={{width:32,height:32,borderRadius:10,background:"#fff",border:"none",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}><Store size={14} color="var(--ink)"/></button>
             <div>
-              <div style={{color:"#fff",fontWeight:800,fontSize:14,lineHeight:1}}>لوحة التحكم</div>
-              <div className="mono" style={{color:"#94A3B8",fontSize:10,letterSpacing:.6}}>SELLER · PRIVATE</div>
+              <div style={{color:"#fff",fontWeight:800,fontSize:14,lineHeight:1}}>{t("adminTitle")}</div>
+              <div className="mono" style={{color:"#94A3B8",fontSize:10,letterSpacing:.6}}>{t("adminPrivate")}</div>
             </div>
           </div>
           <div style={{display:"flex",gap:6,alignItems:"center"}}>
-            <button onClick={()=>setShowSettings(true)} style={{background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.14)",color:"#fff",borderRadius:10,padding:"7px 10px",display:"flex",alignItems:"center",gap:6,fontSize:12,fontWeight:700,cursor:"pointer"}}><Settings size={13}/> إعدادات</button>
-            <button onClick={logout} style={{background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.14)",color:"#fff",borderRadius:10,padding:"7px 10px",display:"flex",alignItems:"center",gap:6,fontSize:12,fontWeight:700,cursor:"pointer"}}><LogOut size={13}/> خروج</button>
+            <button onClick={()=>setShowSettings(true)} style={{background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.14)",color:"#fff",borderRadius:10,padding:"7px 10px",display:"flex",alignItems:"center",gap:6,fontSize:12,fontWeight:700,cursor:"pointer"}}><Settings size={13}/> {t("settings")}</button>
+            <button onClick={logout} style={{background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.14)",color:"#fff",borderRadius:10,padding:"7px 10px",display:"flex",alignItems:"center",gap:6,fontSize:12,fontWeight:700,cursor:"pointer"}}><LogOut size={13}/> {t("logout")}</button>
           </div>
         </div>
         <div style={{marginTop:12,display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
           <div style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.1)",borderRadius:14,padding:10}}>
-            <div className="mono" style={{color:"#94A3B8",fontSize:10,letterSpacing:.6}}>PENDING</div><div style={{color:"#fff",fontWeight:800,fontSize:18,marginTop:2}}>{pending.length}</div><div style={{color:"#CBD5E1",fontSize:11}}>قيد الانتظار</div>
+            <div className="mono" style={{color:"#94A3B8",fontSize:10,letterSpacing:.6}}>PENDING</div><div style={{color:"#fff",fontWeight:800,fontSize:18,marginTop:2}}>{pending.length}</div><div style={{color:"#CBD5E1",fontSize:11}}>{t("pendingShort")}</div>
           </div>
           <div style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.1)",borderRadius:14,padding:10}}>
-            <div className="mono" style={{color:"#94A3B8",fontSize:10,letterSpacing:.6}}>CONFIRMED</div><div style={{color:"#fff",fontWeight:800,fontSize:18,marginTop:2}}>{confirmed.length}</div><div style={{color:"#CBD5E1",fontSize:11}}>مؤكد</div>
+            <div className="mono" style={{color:"#94A3B8",fontSize:10,letterSpacing:.6}}>CONFIRMED</div><div style={{color:"#fff",fontWeight:800,fontSize:18,marginTop:2}}>{confirmed.length}</div><div style={{color:"#CBD5E1",fontSize:11}}>{t("confirmedShort")}</div>
           </div>
           <div style={{background:"var(--red)",borderRadius:14,padding:10}}>
-            <div className="mono" style={{color:"rgba(255,255,255,.85)",fontSize:10,letterSpacing:.6}}>COLLECTED</div><div style={{color:"#fff",fontWeight:800,fontSize:14,marginTop:2}}>{riyal(collected)}</div><div style={{color:"rgba(255,255,255,.8)",fontSize:11}}>محصّل · منتظر {riyal(expected)}</div>
+            <div className="mono" style={{color:"rgba(255,255,255,.85)",fontSize:10,letterSpacing:.6}}>COLLECTED</div><div style={{color:"#fff",fontWeight:800,fontSize:14,marginTop:2}}>{riyal(collected)}</div><div style={{color:"rgba(255,255,255,.8)",fontSize:11}}>{t("collected")} · {t("expected")} {riyal(expected)}</div>
           </div>
         </div>
         {err && <div style={{marginTop:10,background:"var(--red-soft)",border:"1px solid #FECACA",color:"var(--red)",fontSize:12,fontWeight:700,borderRadius:10,padding:"8px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>{err}<button onClick={()=>setErr("")} style={{background:"none",border:"none",cursor:"pointer",color:"var(--red)",display:"flex"}}><X size={13}/></button></div>}
       </div>
       <div style={{padding:"12px 14px 0"}}>
         <div style={{background:"#F1F5F9",border:"1px solid var(--line)",padding:4,borderRadius:14,display:"flex",gap:4}}>
-          <TabBtn active={tab==="orders"} onClick={()=>setTab("orders")} icon={<ClipboardList size={13}/>} label={`الطلبات · ${orders.length}`} />
-          <TabBtn active={tab==="products"} onClick={()=>setTab("products")} icon={<Package size={13}/>} label={`المنتجات · ${products.length}`} />
-          <TabBtn active={tab==="shipping"} onClick={()=>setTab("shipping")} icon={<Truck size={13}/>} label={`الشحن`} />
+          <TabBtn active={tab==="orders"} onClick={()=>setTab("orders")} icon={<ClipboardList size={13}/>} label={`${t("ordersTab")} · ${orders.length}`} />
+          <TabBtn active={tab==="products"} onClick={()=>setTab("products")} icon={<Package size={13}/>} label={`${t("productsTab")} · ${products.length}`} />
+          <TabBtn active={tab==="shipping"} onClick={()=>setTab("shipping")} icon={<Truck size={13}/>} label={t("shippingTab")} />
         </div>
       </div>
       {tab==="orders" ? (
         <div style={{padding:"10px 14px"}}>
           <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:4,scrollbarWidth:"none"}} className="no-bar">
             {[
-              {id:"pending",label:`قيد الانتظار · ${pending.length}`},
-              {id:"confirmed",label:`مؤكد · ${confirmed.length}`},
-              {id:"canceled",label:`ملغى · ${canceled.length}`},
-              {id:"delivered",label:`تم التوصيل · ${delivered.length}`},
-              {id:"all",label:`الكل · ${orders.length}`},
+              {id:"pending",label:`${t("pending")} · ${pending.length}`},
+              {id:"confirmed",label:`${t("confirmed")} · ${confirmed.length}`},
+              {id:"canceled",label:`${t("cancelled")} · ${canceled.length}`},
+              {id:"delivered",label:`${t("delivered")} · ${delivered.length}`},
+              {id:"all",label:`${lang==="ar"?"الكل":"All"} · ${orders.length}`},
             ].map(f=>(
               <button key={f.id} onClick={()=>setOrderFilter(f.id)} style={{whiteSpace:"nowrap",padding:"7px 12px",borderRadius:20,fontSize:11,fontWeight:800,border:orderFilter===f.id?"1px solid var(--ink)":"1px solid var(--line)",background:orderFilter===f.id?"var(--ink)":"#fff",color:orderFilter===f.id?"#fff":"#475569",cursor:"pointer"}}>{f.label}</button>
             ))}
           </div>
           <div style={{marginTop:10}}>
-            {filteredOrders.length===0 && <div style={{background:"var(--paper-4)",border:"1px dashed var(--line)",borderRadius:14,padding:24,textAlign:"center",color:varMuted,fontSize:13}}>لا توجد طلبات في هذا القسم</div>}
-            {filteredOrders.map(o=><OrderCard key={o.id} order={o} setStatus={setStatus} />)}
+            {filteredOrders.length===0 && <div style={{background:"var(--paper-4)",border:"1px dashed var(--line)",borderRadius:14,padding:24,textAlign:"center",color:varMuted,fontSize:13}}>{t("noOrders")}</div>}
+            {filteredOrders.map(o=><OrderCard key={o.id} order={o} setStatus={setStatus} lang={lang} />)}
           </div>
         </div>
       ): tab==="shipping" ? (
         <ShippingEditor />
       ):(
         <div style={{padding:"10px 14px"}}>
-          <button onClick={()=>setShowAdd(true)} style={{width:"100%",background:"#fff",border:"1.5px dashed var(--red)",color:"var(--red)",fontWeight:800,fontSize:13,borderRadius:14,padding:"12px 0",display:"flex",alignItems:"center",justifyContent:"center",gap:7,cursor:"pointer"}}><Plus size={15}/> إضافة منتج جديد</button>
+          <button onClick={()=>setShowAdd(true)} style={{width:"100%",background:"#fff",border:"1.5px dashed var(--red)",color:"var(--red)",fontWeight:800,fontSize:13,borderRadius:14,padding:"12px 0",display:"flex",alignItems:"center",justifyContent:"center",gap:7,cursor:"pointer"}}><Plus size={15}/> {t("addProduct")}</button>
           <div style={{marginTop:10,display:"grid",gap:8}}>
             {products.map(p=>(
               <div key={p.id} style={{display:"flex",gap:10,alignItems:"center",background:"#fff",border:"1px solid var(--line)",borderRadius:14,padding:10,boxShadow:"var(--shadow-card)"}}>
@@ -820,7 +841,7 @@ function TabBtn({active,onClick,icon,label}){
   return <button onClick={onClick} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:6,padding:"9px 0",borderRadius:10,border:active?"1px solid #1a1d19":"1px solid transparent",background:active?"var(--ink)":"transparent",color:active?"#fff":"#64748B",fontWeight:800,fontSize:12,cursor:"pointer"}}>{icon}{label}</button>;
 }
 const STATUS_COLOR={"قيد الانتظار":"#F59E0B","مؤكد":"#16A34A","تم التوصيل":"#0C0E0B","ملغى":"#D7303B"};
-function OrderCard({order,setStatus}){
+function OrderCard({order,setStatus,lang="ar"}){
   const s=order.status;
   return (
     <div style={{background:"#fff",border:"1px solid var(--line)",borderRadius:16,padding:12,marginBottom:10,boxShadow:"var(--shadow-card)"}}>
@@ -829,7 +850,7 @@ function OrderCard({order,setStatus}){
           <div style={{fontWeight:800,fontSize:13.5,display:"flex",alignItems:"center",gap:6}}>{order.firstName} {order.lastName} <span style={{width:6,height:6,borderRadius:20,background:STATUS_COLOR[s],display:"inline-block"}}/></div>
           <div className="mono" style={{color:varMuted,fontSize:11,marginTop:2,direction:"ltr",textAlign:"right"}}>{order.phone} · {new Date(order.createdAt).toLocaleDateString("en-DZ")}</div>
         </div>
-        <span style={{fontSize:11,fontWeight:800,color:"#fff",background:STATUS_COLOR[s],borderRadius:20,padding:"4px 9px",whiteSpace:"nowrap"}}>{s}</span>
+        <span style={{fontSize:11,fontWeight:800,color:"#fff",background:STATUS_COLOR[s],borderRadius:20,padding:"4px 9px",whiteSpace:"nowrap"}}>{statusLabel(s, lang||"ar")}</span>
       </div>
       <div style={{marginTop:10,background:"var(--paper-4)",border:"1px solid var(--line)",borderRadius:12,padding:10}}>
         <div style={{display:"flex",justifyContent:"space-between",gap:10,alignItems:"center"}}>
@@ -917,7 +938,7 @@ function ShippingEditor(){
     <div style={{padding:"10px 14px"}}>
       <div style={{background:"var(--paper-4)",border:"1px solid var(--line)",borderRadius:14,padding:12,display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}>
         <div>
-          <div style={{fontWeight:800,fontSize:13,display:"flex",alignItems:"center",gap:6}}><Truck size={14}/> أسعار التوصيل حسب الولاية</div>
+          <div style={{fontWeight:800,fontSize:13,display:"flex",alignItems:"center",gap:6}}><Truck size={14}/> {lang==="ar"?"أسعار التوصيل حسب الولاية":"Shipping by Province"}</div>
           <div style={{fontSize:11,color:varMuted,marginTop:2}}>عدّل سعر المنزل / المكتب لكل ولاية. يُحسب المجموع تلقائيا في الطلب.</div>
         </div>
         <div style={{display:"flex",gap:6,alignItems:"center"}}>
@@ -927,7 +948,7 @@ function ShippingEditor(){
       </div>
       {err && <div style={{marginTop:8,background:"var(--red-soft)",border:"1px solid #FECACA",color:"var(--red)",fontSize:11,fontWeight:700,borderRadius:10,padding:"8px 10px"}}>{err}</div>}
       <div style={{marginTop:10,display:"grid",gap:8,maxHeight:"62vh",overflowY:"auto",paddingRight:2}} className="no-bar">
-        {WILAYAS.map(w=>{
+        {getWilayas(lang).map(w=>{
           const code=getWilayaCode(w);
           const r=rates[code]||{home:0,desk:0};
           return (
