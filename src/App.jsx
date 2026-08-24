@@ -387,9 +387,7 @@ function Storefront({products,placeOrder,lang,setLang,t}){
           <div style={{fontWeight:800,fontSize:12.5}}>{lang==="ar"?"توصيل سريع وآمن":"Fast & secure delivery"}</div>
           <div style={{fontSize:11,opacity:.7,marginTop:1}}>{lang==="ar"?"تأكيد هاتفي خلال ساعات — بدون دفع مسبق":"Phone confirmation within hours — no prepay"}</div>
         </div>
-        <div style={{position:"relative",display:"flex",alignItems:"center",gap:6,background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.12)",borderRadius:20,padding:"6px 8px"}}>
-          <span style={{width:6,height:6,borderRadius:10,background:"#22C55E",boxShadow:"0 0 0 4px rgba(34,197,94,.18)"}}/><span style={{fontSize:10.5,fontWeight:700}}>COD</span>
-        </div>
+
       </div>
 
       <div style={{padding:"14px 14px 0",display:"flex",alignItems:"baseline",justifyContent:"space-between",gap:10}}>
